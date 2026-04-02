@@ -47,10 +47,21 @@ final class DashboardViewModel {
         stat.currentXP += delta
         do {
             ActivityLogService.insertXPGain(context: modelContext, stat: stat, tier: tier)
+            markDailyQuestsCompleted(for: stat)
             try modelContext.save()
             onDismissQuestCompletion?()
         } catch {
             stat.currentXP -= delta
+        }
+    }
+
+    /// Until per-quest completion is wired, completing XP for an attribute marks **all** daily quests of that attribute as done for today (`Quest.lastCompleted`).
+    private func markDailyQuestsCompleted(for stat: CharacterStat) {
+        guard let profile = stat.user, let attribute = stat.kind else { return }
+        let now = Date()
+        for quest in profile.quests where quest.isDaily {
+            guard quest.statKind == attribute else { continue }
+            quest.lastCompleted = now
         }
     }
 }

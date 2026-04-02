@@ -146,5 +146,13 @@ enum L10n {
                 arguments: [xp as CVarArg, statName as CVarArg]
             )
         }
+
+        static func missedDailyMessage(questTitle: String, dayLabel: String, hp: Int) -> String {
+            String(
+                format: String(localized: "activity_log.hp.missed_daily"),
+                locale: .current,
+                arguments: [hp as CVarArg, questTitle as CVarArg, dayLabel as CVarArg]
+            )
+        }
     }
 }

@@ -21,9 +21,29 @@ struct UpSelfApp: App {
 
     var body: some Scene {
         WindowGroup {
-            CoordinatorView(coordinator: coordinator)
+            AppRootView(coordinator: coordinator)
                 .ignoresSafeArea()
                 .modelContainer(DependencyContainer[\.modelContainer])
         }
+    }
+}
+
+/// Wires scene activation to `MissedDailyPenaltyService` (UIKit navigation stays in `AppCoordinator`).
+private struct AppRootView: View {
+    let coordinator: AppCoordinator
+
+    @Environment(\.scenePhase) private var scenePhase
+
+    var body: some View {
+        CoordinatorView(coordinator: coordinator)
+            .onChange(of: scenePhase) { _, phase in
+                guard phase == .active else { return }
+                let context = ModelContext(DependencyContainer[\.modelContainer])
+                do {
+                    try MissedDailyPenaltyService.evaluateIfNeeded(context: context)
+                } catch {
+                    assertionFailure("MissedDailyPenaltyService: \(error)")
+                }
+            }
     }
 }

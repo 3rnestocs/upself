@@ -52,7 +52,14 @@ final class DataSeedService: DataSeedServiceProtocol {
             let existing = try context.fetch(descriptor)
             if !existing.isEmpty { return }
 
-            let profile = UserProfile(currentHP: 100, maxHP: 100)
+            let calendar = Calendar.current
+            let todayStart = calendar.startOfDay(for: Date())
+            let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: todayStart)
+            let profile = UserProfile(
+                currentHP: 100,
+                maxHP: 100,
+                lastMissedDailyEvaluationDate: yesterdayStart
+            )
             context.insert(profile)
 
             for kind in CharacterAttribute.allCases {

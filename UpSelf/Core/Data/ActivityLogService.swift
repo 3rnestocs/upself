@@ -17,4 +17,9 @@ enum ActivityLogService {
         let log = ActivityLog(message: message, kind: .xpGain, user: profile)
         context.insert(log)
     }
+
+    static func insertHPLoss(context: ModelContext, profile: UserProfile, message: String) {
+        let log = ActivityLog(message: message, kind: .hpLoss, user: profile)
+        context.insert(log)
+    }
 }

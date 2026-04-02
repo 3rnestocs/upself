@@ -16,6 +16,10 @@ final class UserProfile {
     var maxHP: Int
     var lastAppOpen: Date
     var isInLockdown: Bool
+
+    /// Start of the last **calendar day** fully processed for missed-daily HP checks (see `MissedDailyPenaltyService`).
+    /// `nil` = not set yet; first evaluation sets it to yesterday without back-dating.
+    var lastMissedDailyEvaluationDate: Date?
     
     @Relationship(deleteRule: .cascade) 
     var stats: [CharacterStat] = []
@@ -29,12 +33,14 @@ final class UserProfile {
     init(id: UUID = UUID(), 
          currentHP: Int = 100, 
          maxHP: Int = 100, 
-         lastAppOpen: Date = .now, 
+         lastAppOpen: Date = .now,
+         lastMissedDailyEvaluationDate: Date? = nil,
          isInLockdown: Bool = false) {
         self.id = id
         self.currentHP = currentHP
         self.maxHP = maxHP
         self.lastAppOpen = lastAppOpen
+        self.lastMissedDailyEvaluationDate = lastMissedDailyEvaluationDate
         self.isInLockdown = isInLockdown
     }
 }

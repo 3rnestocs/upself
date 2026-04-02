@@ -408,6 +408,22 @@
         }
       }
     },
+    "activity_log.hp.missed_daily" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "-%lld HP · Missed daily \"%@\" (%@)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "-%lld HP · Misión diaria pendiente \"%@\" (%@)"
+          }
+        }
+      }
+    },
     "hud.attributes.title" : {
       "localizations" : {
         "en" : {
