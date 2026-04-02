@@ -68,7 +68,8 @@ private struct ModelContainerKey: InjectionKey {
         let schema = Schema([
             UserProfile.self,
             CharacterStat.self,
-            Quest.self
+            Quest.self,
+            ActivityLog.self
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {

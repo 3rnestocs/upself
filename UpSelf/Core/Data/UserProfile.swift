@@ -23,6 +23,9 @@ final class UserProfile {
     @Relationship(deleteRule: .cascade, inverse: \Quest.user)
     var quests: [Quest] = []
 
+    @Relationship(deleteRule: .cascade, inverse: \ActivityLog.user)
+    var activityLogs: [ActivityLog] = []
+
     init(id: UUID = UUID(), 
          currentHP: Int = 100, 
          maxHP: Int = 100, 
