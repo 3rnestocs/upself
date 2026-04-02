@@ -1,0 +1,20 @@
+//
+//  ActivityLogService.swift
+//  UpSelf
+//
+//  Inserts `ActivityLog` rows; copy comes from `L10n`.
+//
+
+import Foundation
+import SwiftData
+
+enum ActivityLogService {
+
+    /// Records an XP grant after attribute selection; no `save()` — caller saves once.
+    static func insertXPGain(context: ModelContext, stat: CharacterStat, tier: QuestRewardTier) {
+        guard let attribute = stat.kind, let profile = stat.user else { return }
+        let message = L10n.ActivityLogCopy.xpGainMessage(xp: tier.xp, attribute: attribute)
+        let log = ActivityLog(message: message, kind: .xpGain, user: profile)
+        context.insert(log)
+    }
+}

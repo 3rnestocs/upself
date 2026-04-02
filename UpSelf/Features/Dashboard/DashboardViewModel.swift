@@ -23,6 +23,9 @@ final class DashboardViewModel {
     /// Set by `AppCoordinator` to present the create-quest sheet.
     var onPresentCreateQuest: (() -> Void)?
 
+    /// Set by `AppCoordinator` to push the activity log screen.
+    var onPresentHistoryLog: (() -> Void)?
+
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
     }
@@ -35,10 +38,15 @@ final class DashboardViewModel {
         onPresentCreateQuest?()
     }
 
+    func presentHistoryLog() {
+        onPresentHistoryLog?()
+    }
+
     func addXP(to stat: CharacterStat, tier: QuestRewardTier = .easy) {
         let delta = tier.xp
         stat.currentXP += delta
         do {
+            ActivityLogService.insertXPGain(context: modelContext, stat: stat, tier: tier)
             try modelContext.save()
             onDismissQuestCompletion?()
         } catch {

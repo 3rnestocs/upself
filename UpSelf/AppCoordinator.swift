@@ -37,6 +37,9 @@ class AppCoordinator {
         viewModel.onPresentCreateQuest = { [weak self] in
             self?.presentCreateQuest()
         }
+        viewModel.onPresentHistoryLog = { [weak self] in
+            self?.pushHistoryLog()
+        }
 
         let root = DashboardView(viewModel: viewModel)
             .modelContainer(modelContainer)
@@ -86,6 +89,15 @@ class AppCoordinator {
         }
         createQuestHostingController = hosting
         navigationController.present(hosting, animated: true)
+    }
+
+    func pushHistoryLog() {
+        let root = HistoryLogView()
+            .modelContainer(modelContainer)
+        let hosting = UIHostingController(rootView: root)
+        hosting.view.backgroundColor = AppTheme.UIKitColors.background
+        hosting.navigationItem.title = String(localized: L10n.HistoryLog.title)
+        navigationController.pushViewController(hosting, animated: true)
     }
 
     private func dismissQuestCompletionIfPresented() {
