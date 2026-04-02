@@ -25,13 +25,16 @@ class AppCoordinator {
     }
 
     func start() {
-        let viewModel = DashboardViewModel(modelContext: modelContainer.mainContext)
+        let viewModel = DashboardViewModel()
         dashboardViewModel = viewModel
         viewModel.onPresentCreateQuest = { [weak self] in
             self?.presentCreateQuest()
         }
         viewModel.onPresentHistoryLog = { [weak self] in
             self?.pushHistoryLog()
+        }
+        viewModel.onPresentQuestLog = { [weak self] in
+            self?.pushQuestLog()
         }
 
         let root = DashboardView(viewModel: viewModel)
@@ -68,6 +71,16 @@ class AppCoordinator {
         let hosting = UIHostingController(rootView: root)
         hosting.view.backgroundColor = AppTheme.UIKitColors.background
         hosting.navigationItem.title = String(localized: L10n.HistoryLog.title)
+        navigationController.pushViewController(hosting, animated: true)
+    }
+
+    func pushQuestLog() {
+        let viewModel = QuestLogViewModel(modelContext: modelContainer.mainContext)
+        let root = QuestLogView(viewModel: viewModel)
+            .modelContainer(modelContainer)
+        let hosting = UIHostingController(rootView: root)
+        hosting.view.backgroundColor = AppTheme.UIKitColors.background
+        hosting.navigationItem.title = String(localized: L10n.QuestLog.title)
         navigationController.pushViewController(hosting, animated: true)
     }
 

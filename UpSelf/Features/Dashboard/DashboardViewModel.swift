@@ -6,16 +6,10 @@
 //
 
 import Foundation
-import SwiftData
-#if canImport(UIKit)
-import UIKit
-#endif
 
 @MainActor
 @Observable
 final class DashboardViewModel {
-
-    private let modelContext: ModelContext
 
     /// Set by `AppCoordinator` to present the create-quest sheet.
     var onPresentCreateQuest: (() -> Void)?
@@ -23,9 +17,10 @@ final class DashboardViewModel {
     /// Set by `AppCoordinator` to push the activity log screen.
     var onPresentHistoryLog: (() -> Void)?
 
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-    }
+    /// Set by `AppCoordinator` to push the quest log screen.
+    var onPresentQuestLog: (() -> Void)?
+
+    init() {}
 
     func presentCreateQuest() {
         onPresentCreateQuest?()
@@ -35,35 +30,7 @@ final class DashboardViewModel {
         onPresentHistoryLog?()
     }
 
-    /// Awards XP for this quest’s tier, logs activity, sets `lastCompleted` (per calendar day for dailies).
-    func completePersistedQuest(_ quest: Quest) {
-        guard quest.canComplete() else { return }
-        guard let attribute = quest.statKind,
-              let profile = quest.user,
-              let stat = profile.stats.first(where: { $0.kindRawValue == attribute.rawValue })
-        else { return }
-
-        let tier = QuestRewardTier(xp: quest.rewardXP) ?? .easy
-        let delta = tier.xp
-        let previousCompleted = quest.lastCompleted
-
-        stat.currentXP += delta
-        ActivityLogService.insertQuestXPGain(
-            context: modelContext,
-            stat: stat,
-            tier: tier,
-            questTitle: quest.title
-        )
-        quest.lastCompleted = Date()
-
-        do {
-            try modelContext.save()
-            #if canImport(UIKit)
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            #endif
-        } catch {
-            stat.currentXP -= delta
-            quest.lastCompleted = previousCompleted
-        }
+    func presentQuestLog() {
+        onPresentQuestLog?()
     }
 }

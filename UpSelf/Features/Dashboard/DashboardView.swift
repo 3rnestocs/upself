@@ -2,7 +2,7 @@
 //  DashboardView.swift
 //  UpSelf
 //
-//  Main HUD: HP bar and six stat cards (SwiftData via @Query).
+//  Main HUD: HP bar, six stat cards, and quest log entry (SwiftData via @Query).
 //
 
 import SwiftData
@@ -42,10 +42,12 @@ struct DashboardView: View {
             .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
     }
 
-    private var nonDailyQuests: [Quest] {
-        quests
-            .filter { !$0.isDaily }
-            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+    private var completedDailiesToday: Int {
+        dailyQuests.filter { $0.displayAsCompleted() }.count
+    }
+
+    private var hasOneOffQuestsOnly: Bool {
+        dailyQuests.isEmpty && quests.contains { !$0.isDaily }
     }
 
     var body: some View {
@@ -54,8 +56,8 @@ struct DashboardView: View {
                 header
                 hpSection
                 statsSection
-                if !dailyQuests.isEmpty || !nonDailyQuests.isEmpty {
-                    questsSection
+                if !quests.isEmpty {
+                    questLogEntryCard
                 }
             }
             .padding(AppTheme.Spacing.md)
@@ -92,97 +94,47 @@ struct DashboardView: View {
         }
     }
 
-    private var questsSection: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
-            Text(L10n.HUD.questsSectionTitle)
-                .font(AppTheme.Fonts.ui(.headline))
-                .foregroundStyle(AppTheme.Colors.secondaryLabel)
-
-            if !dailyQuests.isEmpty {
-                questSubsection(title: L10n.HUD.questsSectionDaily, quests: dailyQuests)
-            }
-
-            if !nonDailyQuests.isEmpty {
-                questSubsection(title: L10n.HUD.questsSectionNonDaily, quests: nonDailyQuests)
-            }
-        }
-    }
-
-    private func questSubsection(title: LocalizedStringResource, quests: [Quest]) -> some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-            Text(title)
-                .font(AppTheme.Fonts.ui(.subheadline))
-                .fontWeight(.semibold)
-                .foregroundStyle(AppTheme.Colors.secondaryLabel)
-
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-                ForEach(quests, id: \.id) { quest in
-                    questRow(quest)
-                }
-            }
-        }
-    }
-
-    private func questRow(_ quest: Quest) -> some View {
-        let done = quest.displayAsCompleted()
-        let canComplete = quest.canComplete()
-
-        return HStack(alignment: .center, spacing: AppTheme.Spacing.md) {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                Text(quest.title)
-                    .font(AppTheme.Fonts.ui(.subheadline))
-                    .fontWeight(.medium)
-                    .foregroundStyle(Color.white.opacity(0.92))
-                    .lineLimit(3)
-                if let kind = quest.statKind {
-                    Text(L10n.Stats.title(for: kind))
-                        .font(AppTheme.Fonts.mono(.caption))
-                        .foregroundStyle(AppTheme.Colors.secondaryLabel)
-                }
-            }
-            Spacer(minLength: AppTheme.Spacing.sm)
-
-            VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
-                if let tier = quest.rewardTier {
-                    Text(L10n.HUD.xpFormat(xp: tier.xp))
-                        .font(AppTheme.Fonts.mono(.subheadline))
-                        .foregroundStyle(AppTheme.Colors.accentXP)
-                }
-
-                if canComplete {
-                    Button {
-                        viewModel.completePersistedQuest(quest)
-                    } label: {
-                        Text(L10n.HUD.questCompleteAction)
-                            .font(AppTheme.Fonts.ui(.caption))
-                            .fontWeight(.semibold)
-                            .foregroundStyle(AppTheme.Colors.background)
-                            .padding(.horizontal, AppTheme.Spacing.sm)
-                            .padding(.vertical, AppTheme.Spacing.xs)
-                            .background(AppTheme.Colors.amber)
-                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.chip))
+    private var questLogEntryCard: some View {
+        Button {
+            viewModel.presentQuestLog()
+        } label: {
+            HStack(alignment: .center, spacing: AppTheme.Spacing.md) {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                    if hasOneOffQuestsOnly {
+                        Text(L10n.QuestLog.title)
+                            .font(AppTheme.Fonts.ui(.headline))
+                            .foregroundStyle(AppTheme.Colors.secondaryLabel)
+                        Text(L10n.QuestLog.dashboardOneOffTeaser)
+                            .font(AppTheme.Fonts.mono(.subheadline))
+                            .foregroundStyle(AppTheme.Colors.accentXP)
+                    } else {
+                        Text(L10n.HUD.dailyBriefingTitle)
+                            .font(AppTheme.Fonts.ui(.headline))
+                            .foregroundStyle(AppTheme.Colors.secondaryLabel)
+                        Text(L10n.HUD.dailyBriefingSummary(completed: completedDailiesToday, total: dailyQuests.count))
+                            .font(AppTheme.Fonts.mono(.subheadline))
+                            .foregroundStyle(AppTheme.Colors.accentXP)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(L10n.Accessibility.completeQuestButton(quest.title))
-                } else if done {
-                    Text(quest.isDaily ? L10n.HUD.questDoneToday : L10n.HUD.questDoneOnce)
-                        .font(AppTheme.Fonts.mono(.caption2))
-                        .foregroundStyle(AppTheme.Colors.accentXP.opacity(0.9))
-                        .padding(.vertical, AppTheme.Spacing.xs)
                 }
+                Spacer(minLength: AppTheme.Spacing.sm)
+                Image(systemName: "chevron.right")
+                    .font(AppTheme.Fonts.ui(.body))
+                    .fontWeight(.semibold)
+                    .foregroundStyle(AppTheme.Colors.secondaryLabel)
             }
+            .padding(AppTheme.Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: AppTheme.Radius.card)
+                    .fill(AppTheme.Colors.card.opacity(0.92))
+            }
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.Radius.card)
+                    .stroke(AppTheme.Colors.cardStroke, lineWidth: AppTheme.Stroke.cardLine)
+            )
         }
-        .padding(AppTheme.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            RoundedRectangle(cornerRadius: AppTheme.Radius.card)
-                .fill(AppTheme.Colors.card.opacity(0.92))
-        }
-        .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.Radius.card)
-                .stroke(AppTheme.Colors.cardStroke, lineWidth: AppTheme.Stroke.cardLine)
-        )
-        .opacity(done ? 0.6 : 1)
+        .buttonStyle(.plain)
+        .accessibilityLabel(L10n.HUD.openQuestLog)
     }
 
     private var hpSection: some View {

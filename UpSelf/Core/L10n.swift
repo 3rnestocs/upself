@@ -31,6 +31,8 @@ enum L10n {
         static let questDoneOnce = LocalizedStringResource("hud.quest.done_once")
         static let addQuest = LocalizedStringResource("hud.add_quest")
         static let openActivityLog = LocalizedStringResource("hud.open_activity_log")
+        static let openQuestLog = LocalizedStringResource("hud.open_quest_log")
+        static let dailyBriefingTitle = LocalizedStringResource("hud.daily_briefing.title")
 
         static func hpPair(current: Int, max: Int) -> String {
             String(localized: "hp.pair \(current) \(max)")
@@ -43,6 +45,23 @@ enum L10n {
         static func xpFormat(xp: Int) -> String {
             String(localized: "hud.xp.format \(xp)")
         }
+
+        static func dailyBriefingSummary(completed: Int, total: Int) -> String {
+            String(
+                format: String(localized: "hud.daily_briefing.summary %lld %lld"),
+                locale: .current,
+                arguments: [completed, total] as [CVarArg]
+            )
+        }
+    }
+
+    enum QuestLog {
+        static let title = LocalizedStringResource("quest_log.title")
+        static let filterDaily = LocalizedStringResource("quest_log.filter.daily")
+        static let filterOneOff = LocalizedStringResource("quest_log.filter.one_off")
+        static let filterAccessibility = LocalizedStringResource("quest_log.filter.accessibility")
+        static let empty = LocalizedStringResource("quest_log.empty")
+        static let dashboardOneOffTeaser = LocalizedStringResource("quest_log.dashboard.one_off_teaser")
     }
 
     enum Stats {
