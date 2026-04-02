@@ -42,16 +42,38 @@ struct HistoryLogView: View {
     }
 
     private func logRow(_ log: ActivityLog) -> some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
             Text(log.timestamp.formatted(date: .abbreviated, time: .shortened))
                 .font(AppTheme.Fonts.mono(.caption2))
                 .foregroundStyle(AppTheme.Colors.secondaryLabel)
-            Text(log.message)
-                .font(AppTheme.Fonts.mono(.subheadline))
-                .foregroundStyle(rowForeground(for: log.kind))
-                .multilineTextAlignment(.leading)
+
+            if log.kind == .xpGain, let split = splitXPGainMessage(log.message) {
+                Text(split.xpOrQuestLine)
+                    .font(AppTheme.Fonts.mono(.subheadline))
+                    .foregroundStyle(AppTheme.Colors.accentXP)
+                    .multilineTextAlignment(.leading)
+                Text(split.statLine)
+                    .font(AppTheme.Fonts.mono(.subheadline))
+                    .foregroundStyle(AppTheme.Colors.activityLogStatLine)
+                    .multilineTextAlignment(.leading)
+            } else {
+                Text(log.message)
+                    .font(AppTheme.Fonts.mono(.subheadline))
+                    .foregroundStyle(rowForeground(for: log.kind))
+                    .multilineTextAlignment(.leading)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// XP logs store `head\\nstat` (`L10n.ActivityLogCopy` + `ActivityLogService`).
+    private func splitXPGainMessage(_ message: String) -> (xpOrQuestLine: String, statLine: String)? {
+        let parts = message.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
+        guard parts.count == 2 else { return nil }
+        let head = String(parts[0]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let stat = String(parts[1]).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !head.isEmpty, !stat.isEmpty else { return nil }
+        return (head, stat)
     }
 
     private func rowForeground(for kind: ActivityLogKind?) -> Color {
