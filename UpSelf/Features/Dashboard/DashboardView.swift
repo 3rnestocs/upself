@@ -82,6 +82,15 @@ struct DashboardView: View {
                 .foregroundStyle(AppTheme.Colors.secondaryLabel)
             Spacer(minLength: AppTheme.Spacing.sm)
             Button {
+                viewModel.presentHistoryLog()
+            } label: {
+                Image(systemName: "list.bullet.rectangle")
+                    .font(.title2)
+                    .foregroundStyle(AppTheme.Colors.accentXP)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L10n.HUD.openActivityLog)
+            Button {
                 viewModel.presentCreateQuest()
             } label: {
                 Image(systemName: "plus.circle.fill")
@@ -299,15 +308,4 @@ struct DashboardView: View {
         .accessibilityLabel(L10n.Accessibility.xpProgress)
         .accessibilityValue(L10n.Accessibility.xpPercent(Int(progress * 100)))
     }
-}
-
-#Preview("Dashboard") {
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let schema = Schema([UserProfile.self, CharacterStat.self, Quest.self])
-    let container = try! ModelContainer(for: schema, configurations: config)
-    let ctx = ModelContext(container)
-    DataSeedService().seedIfNeeded(context: ctx)
-
-    return DashboardView(viewModel: DashboardViewModel(modelContext: ctx))
-        .modelContainer(container)
 }
