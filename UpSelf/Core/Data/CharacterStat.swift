@@ -13,8 +13,8 @@ import SwiftData
 final class CharacterStat {
     /// Cumulative progress points toward levels (see `QuestRewardTier.xp` grants per quest).
     @Attribute(.unique) var id: UUID
-    /// Persisted `CharacterAttribute.rawValue` (column historically named `name`).
-    @Attribute(originalName: "name") var kindRawValue: String
+    /// Persisted `CharacterAttribute.rawValue`.
+    var kindRawValue: String
     var currentXP: Int
 
     var kind: CharacterAttribute? {

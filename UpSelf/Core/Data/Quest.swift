@@ -13,8 +13,8 @@ import SwiftData
 final class Quest {
     @Attribute(.unique) var id: UUID
     var title: String
-    /// Persisted `CharacterAttribute.rawValue` (column historically named `statType`).
-    @Attribute(originalName: "statType") var statKindRawValue: String
+    /// Persisted `CharacterAttribute.rawValue`.
+    var statKindRawValue: String
     /// Encodes `QuestRewardTier.xp` — canonical values **6 / 10 / 15 / 30** (progress units).
     var rewardXP: Int
     var isDaily: Bool

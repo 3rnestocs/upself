@@ -16,7 +16,6 @@ struct UpSelfApp: App {
         let container = DependencyContainer[\.modelContainer]
         let context = ModelContext(container)
         DependencyContainer[\.dataSeedService].seedIfNeeded(context: context)
-        LegacyKindMigration.normalizeAll(context: context)
         coordinator = AppCoordinator(modelContainer: container)
     }
 
