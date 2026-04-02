@@ -24,7 +24,7 @@ This project strictly follows the Model-View-ViewModel-Coordinator pattern.
 
 - Xcode 15.0+
 - iOS 17.0+ Target
-- Active Apple Developer Account (Required for FamilyControls entitlement)
+- **Apple Developer Program (paid)** if you use Screen Time / **Family Controls** — Personal Teams cannot provision the Family Controls capability; remove that capability in Xcode to build with a free account (the lockdown feature will not work until you use a paid membership and re-add the capability).
 
 ## Setup & Installation
 
