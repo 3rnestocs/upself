@@ -5,21 +5,26 @@
 //  Created by Ernesto Contreras on 2/4/26.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
 struct UpSelfApp: App {
-    let appCoordinator = AppCoordinator()
-    // Obtenemos el contenedor desde nuestro DI central
-    @Injected(\.modelContainer) var container
+    private let coordinator: AppCoordinator
+
+    init() {
+        let container = DependencyContainer[\.modelContainer]
+        let context = ModelContext(container)
+        DependencyContainer[\.dataSeedService].seedIfNeeded(context: context)
+        LegacyKindMigration.normalizeAll(context: context)
+        coordinator = AppCoordinator(modelContainer: container)
+    }
 
     var body: some Scene {
         WindowGroup {
-            CoordinatorView(coordinator: appCoordinator)
+            CoordinatorView(coordinator: coordinator)
                 .ignoresSafeArea()
-                // Esto habilita @Query y @Environment(\.modelContext) en TODAS las vistas
-                .modelContainer(container)
+                .modelContainer(DependencyContainer[\.modelContainer])
         }
     }
 }

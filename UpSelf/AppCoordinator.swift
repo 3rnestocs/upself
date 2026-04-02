@@ -5,28 +5,32 @@
 //  Created by Ernesto Contreras on 2/4/26.
 //
 
-import UIKit
+import SwiftData
 import SwiftUI
+import UIKit
 
 class AppCoordinator {
-    // Este es el motor de navegación de UIKit
     let navigationController: UINavigationController
-    
-    init(navigationController: UINavigationController = UINavigationController()) {
+    private let modelContainer: ModelContainer
+
+    init(
+        navigationController: UINavigationController = UINavigationController(),
+        modelContainer: ModelContainer
+    ) {
         self.navigationController = navigationController
+        self.modelContainer = modelContainer
     }
-    
+
     func start() {
-        // Aquí instanciamos nuestra primera vista (Dashboard)
-        // Por ahora, pondremos un controlador en blanco con fondo rojo para probar
-        let initialVC = UIHostingController(rootView: Text("¡El Coordinator Funciona!").font(.largeTitle))
-        initialVC.view.backgroundColor = .systemRed
-        
+        let viewModel = DashboardViewModel()
+        let root = DashboardView(viewModel: viewModel)
+            .modelContainer(modelContainer)
+        let initialVC = UIHostingController(rootView: root)
+        initialVC.view.backgroundColor = AppTheme.UIKitColors.background
+
         navigationController.pushViewController(initialVC, animated: false)
     }
 }
-
-import SwiftUI
 
 struct CoordinatorView: UIViewControllerRepresentable {
     let coordinator: AppCoordinator

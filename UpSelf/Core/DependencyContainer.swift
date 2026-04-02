@@ -74,7 +74,18 @@ private struct ModelContainerKey: InjectionKey {
         do {
             return try ModelContainer(for: schema, configurations: [config])
         } catch {
-            fatalError("No se pudo inicializar el ModelContainer: \(error)")
+            fatalError(L10n.Errors.modelContainer(error))
         }
     }()
+}
+
+extension DependencyContainer {
+    var dataSeedService: DataSeedServiceProtocol {
+        get { DependencyContainer[DataSeedServiceKey.self] }
+        set { DependencyContainer[DataSeedServiceKey.self] = newValue }
+    }
+}
+
+private struct DataSeedServiceKey: InjectionKey {
+    static var currentValue: DataSeedServiceProtocol = DataSeedService()
 }
