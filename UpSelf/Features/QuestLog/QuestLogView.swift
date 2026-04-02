@@ -142,7 +142,7 @@ struct QuestLogView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: AppTheme.Radius.card)
-                .fill(AppTheme.Colors.card.opacity(0.92))
+                .fill(AppTheme.Colors.card)
         }
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.Radius.card)
