@@ -12,16 +12,22 @@ import UIKit
 class AppCoordinator {
     let navigationController: UINavigationController
     private let modelContainer: ModelContainer
+    private let screenTimeService: ScreenTimeServiceProtocol
 
     private var dashboardViewModel: DashboardViewModel?
     private weak var questCompletionHostingController: UIViewController?
+    #if os(iOS) || os(visionOS)
+    private weak var lockdownHostingController: UIViewController?
+    #endif
 
     init(
         navigationController: UINavigationController = UINavigationController(),
-        modelContainer: ModelContainer
+        modelContainer: ModelContainer,
+        screenTimeService: ScreenTimeServiceProtocol = DependencyContainer[\.screenTimeService]
     ) {
         self.navigationController = navigationController
         self.modelContainer = modelContainer
+        self.screenTimeService = screenTimeService
     }
 
     func start() {
@@ -33,6 +39,11 @@ class AppCoordinator {
         viewModel.onDismissQuestCompletion = { [weak self] in
             self?.dismissQuestCompletionIfPresented()
         }
+        #if os(iOS) || os(visionOS)
+        viewModel.onPresentLockdownFlow = { [weak self] in
+            self?.presentLockdownAppPicker()
+        }
+        #endif
 
         let root = DashboardView(viewModel: viewModel)
             .modelContainer(modelContainer)
@@ -72,6 +83,54 @@ class AppCoordinator {
             self?.questCompletionHostingController = nil
         }
     }
+
+    #if os(iOS) || os(visionOS)
+    func presentLockdownAppPicker() {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                try await self.screenTimeService.requestAuthorization()
+            } catch {
+                return
+            }
+
+            let root = LockdownAppPickerView(
+                onApply: { [weak self] selection in
+                    guard let self else { return }
+                    self.screenTimeService.applyShields(selection: selection)
+                    self.dismissLockdownIfPresented()
+                },
+                onCancel: { [weak self] in
+                    self?.dismissLockdownIfPresented()
+                },
+                onClearShields: { [weak self] in
+                    guard let self else { return }
+                    self.screenTimeService.removeShields()
+                    self.dismissLockdownIfPresented()
+                }
+            )
+
+            let hosting = UIHostingController(rootView: root)
+            hosting.view.backgroundColor = AppTheme.UIKitColors.background
+            hosting.modalPresentationStyle = .pageSheet
+            if let sheet = hosting.sheetPresentationController {
+                sheet.detents = [.large()]
+                sheet.prefersGrabberVisible = true
+            }
+            self.lockdownHostingController = hosting
+            self.navigationController.present(hosting, animated: true)
+        }
+    }
+
+    private func dismissLockdownIfPresented() {
+        guard let presented = lockdownHostingController ?? navigationController.presentedViewController else {
+            return
+        }
+        presented.dismiss(animated: true) { [weak self] in
+            self?.lockdownHostingController = nil
+        }
+    }
+    #endif
 }
 
 struct CoordinatorView: UIViewControllerRepresentable {
