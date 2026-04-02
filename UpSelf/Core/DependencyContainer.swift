@@ -89,3 +89,14 @@ extension DependencyContainer {
 private struct DataSeedServiceKey: InjectionKey {
     static var currentValue: DataSeedServiceProtocol = DataSeedService()
 }
+
+extension DependencyContainer {
+    var screenTimeService: ScreenTimeServiceProtocol {
+        get { DependencyContainer[ScreenTimeServiceKey.self] }
+        set { DependencyContainer[ScreenTimeServiceKey.self] = newValue }
+    }
+}
+
+private struct ScreenTimeServiceKey: InjectionKey {
+    static var currentValue: ScreenTimeServiceProtocol = ScreenTimeService()
+}
