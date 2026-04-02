@@ -75,4 +75,12 @@ enum L10n {
             String(format: String(localized: "error.model_container"), String(describing: error))
         }
     }
+
+    enum Lockdown {
+        static let title = LocalizedStringResource("lockdown.title")
+        static let apply = LocalizedStringResource("lockdown.apply")
+        static let cancel = LocalizedStringResource("lockdown.cancel")
+        static let clearShields = LocalizedStringResource("lockdown.clear_shields")
+        static let testButton = LocalizedStringResource("hud.lockdown_test")
+    }
 }
