@@ -13,6 +13,8 @@ struct DashboardView: View {
     @Query(sort: \CharacterStat.kindRawValue) private var allStats: [CharacterStat]
     @Query(sort: \Quest.title) private var allQuests: [Quest]
 
+    @State private var showStatsInfo = false
+
     private let viewModel: DashboardViewModel
 
     init(viewModel: DashboardViewModel) {
@@ -68,6 +70,9 @@ struct DashboardView: View {
         }
         .scrollBounceBehavior(.basedOnSize, axes: .vertical)
         .background(AppTheme.Colors.background.ignoresSafeArea())
+        .sheet(isPresented: $showStatsInfo) {
+            StatsInfoSheet()
+        }
     }
 
     private var header: some View {
@@ -131,7 +136,7 @@ struct DashboardView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background {
                 RoundedRectangle(cornerRadius: AppTheme.Radius.card)
-                    .fill(AppTheme.Colors.card.opacity(0.92))
+                    .fill(AppTheme.Colors.card)
             }
             .overlay(
                 RoundedRectangle(cornerRadius: AppTheme.Radius.card)
@@ -198,9 +203,21 @@ struct DashboardView: View {
 
     private var statsSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-            Text(L10n.HUD.attributesTitle)
-                .font(AppTheme.Fonts.ui(.headline))
-                .foregroundStyle(AppTheme.Colors.secondaryLabel)
+            HStack(alignment: .firstTextBaseline) {
+                Text(L10n.HUD.attributesTitle)
+                    .font(AppTheme.Fonts.ui(.headline))
+                    .foregroundStyle(AppTheme.Colors.secondaryLabel)
+                Spacer(minLength: AppTheme.Spacing.sm)
+                Button {
+                    showStatsInfo = true
+                } label: {
+                    Image(systemName: "exclamationmark.circle")
+                        .font(AppTheme.Fonts.ui(.headline))
+                        .foregroundStyle(AppTheme.Colors.accentXP)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(L10n.HUD.statsInfoButtonAccessibility)
+            }
 
             LazyVGrid(
                 columns: [
@@ -281,5 +298,49 @@ struct DashboardView: View {
         .frame(height: AppTheme.Bar.xpHeight)
         .accessibilityLabel(L10n.Accessibility.xpProgress)
         .accessibilityValue(L10n.Accessibility.xpPercent(Int(progress * 100)))
+    }
+}
+
+// MARK: - Stats info sheet
+
+private struct StatsInfoSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
+                    ForEach(CharacterAttribute.allCases, id: \.self) { attribute in
+                        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                            Text(L10n.Stats.title(for: attribute))
+                                .font(AppTheme.Fonts.ui(.headline))
+                                .foregroundStyle(AppTheme.Colors.accentXP)
+                            Text(L10n.Stats.description(for: attribute))
+                                .font(AppTheme.Fonts.ui(.body))
+                                .foregroundStyle(AppTheme.Colors.secondaryLabel)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+                .padding(AppTheme.Spacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentSizedSheetMeasureHeight()
+            }
+            .background(AppTheme.Colors.background.ignoresSafeArea())
+            .navigationTitle(L10n.HUD.statsInfoTitle)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text(L10n.HUD.statsInfoDone)
+                    }
+                    .tint(AppTheme.Colors.accentXP)
+                }
+            }
+        }
+        .contentSizedSheetPresentation()
     }
 }
