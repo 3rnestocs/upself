@@ -616,6 +616,54 @@
         }
       }
     },
+    "hud.stats_info.button_accessibility" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What attributes mean"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué significan los atributos"
+          }
+        }
+      }
+    },
+    "hud.stats_info.done" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listo"
+          }
+        }
+      }
+    },
+    "hud.stats_info.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your attributes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus atributos"
+          }
+        }
+      }
+    },
     "hud.hp.label" : {
       "localizations" : {
         "en" : {
@@ -792,6 +840,22 @@
         }
       }
     },
+    "stat.charisma.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Social connection and communication—calls, time with people, and showing up for relationships."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexión social y comunicación: llamadas, tiempo con personas y estar presente en tus relaciones."
+          }
+        }
+      }
+    },
     "stat.economy" : {
       "localizations" : {
         "en" : {
@@ -804,6 +868,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Economía"
+          }
+        }
+      }
+    },
+    "stat.economy.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Money and productive output—tracking spending, earning, deep work blocks, and financial discipline."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dinero y rendimiento productivo: gastos, ingresos, bloques de trabajo profundo y disciplina financiera."
           }
         }
       }
@@ -824,6 +904,22 @@
         }
       }
     },
+    "stat.logistics.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organization, routines, and keeping your environment and schedule under control—sleep, planning, cleaning, meal prep, and life admin."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organización, rutinas y control de tu entorno y agenda: descanso, planificación, limpieza, comida y vida práctica."
+          }
+        }
+      }
+    },
     "stat.mastery" : {
       "localizations" : {
         "en" : {
@@ -836,6 +932,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Maestría"
+          }
+        }
+      }
+    },
+    "stat.mastery.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learning, skill-building, and focused work—reading, study, practice, and leveling up what you know."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aprendizaje, habilidades y trabajo concentrado: lectura, estudio, práctica y mejorar lo que sabes."
           }
         }
       }
@@ -872,6 +984,22 @@
         }
       }
     },
+    "stat.vitality.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Physical health and energy—exercise, hygiene, nutrition, hydration, and recovery."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salud física y energía: ejercicio, higiene, alimentación, hidratación y recuperación."
+          }
+        }
+      }
+    },
     "stat.willpower" : {
       "localizations" : {
         "en" : {
@@ -884,6 +1012,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Voluntad"
+          }
+        }
+      }
+    },
+    "stat.willpower.info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discipline and impulse control—resisting distractions, building habits, and holding boundaries with comfort and screens."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disciplina y control de impulsos: resistir distracciones, crear hábitos y poner límites al confort y a las pantallas."
           }
         }
       }

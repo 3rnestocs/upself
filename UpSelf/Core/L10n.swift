@@ -33,6 +33,9 @@ enum L10n {
         static let openActivityLog = LocalizedStringResource("hud.open_activity_log")
         static let openQuestLog = LocalizedStringResource("hud.open_quest_log")
         static let dailyBriefingTitle = LocalizedStringResource("hud.daily_briefing.title")
+        static let statsInfoTitle = LocalizedStringResource("hud.stats_info.title")
+        static let statsInfoDone = LocalizedStringResource("hud.stats_info.done")
+        static let statsInfoButtonAccessibility = LocalizedStringResource("hud.stats_info.button_accessibility")
 
         static func hpPair(current: Int, max: Int) -> String {
             String(localized: "hp.pair \(current) \(max)")
@@ -74,6 +77,13 @@ enum L10n {
         static let vitality = LocalizedStringResource("stat.vitality")
         static let economy = LocalizedStringResource("stat.economy")
 
+        static let logisticsInfo = LocalizedStringResource("stat.logistics.info")
+        static let masteryInfo = LocalizedStringResource("stat.mastery.info")
+        static let charismaInfo = LocalizedStringResource("stat.charisma.info")
+        static let willpowerInfo = LocalizedStringResource("stat.willpower.info")
+        static let vitalityInfo = LocalizedStringResource("stat.vitality.info")
+        static let economyInfo = LocalizedStringResource("stat.economy.info")
+
         static func title(for attribute: CharacterAttribute) -> LocalizedStringResource {
             switch attribute {
             case .logistics: logistics
@@ -82,6 +92,17 @@ enum L10n {
             case .willpower: willpower
             case .vitality: vitality
             case .economy: economy
+            }
+        }
+
+        static func description(for attribute: CharacterAttribute) -> LocalizedStringResource {
+            switch attribute {
+            case .logistics: logisticsInfo
+            case .mastery: masteryInfo
+            case .charisma: charismaInfo
+            case .willpower: willpowerInfo
+            case .vitality: vitalityInfo
+            case .economy: economyInfo
             }
         }
     }
