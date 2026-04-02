@@ -47,6 +47,19 @@ struct DashboardView: View {
                 }
                 .buttonStyle(.bordered)
                 .tint(AppTheme.Colors.accentXP.opacity(0.85))
+
+                #if os(iOS) || os(visionOS)
+                Button {
+                    viewModel.startLockdownFlow()
+                } label: {
+                    Text(L10n.Lockdown.testButton)
+                        .font(AppTheme.Fonts.ui(.footnote))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, AppTheme.Spacing.sm)
+                }
+                .buttonStyle(.bordered)
+                .tint(AppTheme.Colors.alertHP.opacity(0.9))
+                #endif
             }
             .padding(AppTheme.Spacing.md)
         }
