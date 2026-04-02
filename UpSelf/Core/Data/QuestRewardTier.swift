@@ -8,17 +8,17 @@
 import Foundation
 
 enum QuestRewardTier: String, CaseIterable, Codable, Sendable {
-    case small
-    case medium
-    case large
-    case extraLarge
+    case easy
+    case regular
+    case hard
+    case epic
 
     var xp: Int {
         switch self {
-        case .small: 10
-        case .medium: 25
-        case .large: 50
-        case .extraLarge: 250
+        case .easy: 10
+        case .regular: 25
+        case .hard: 50
+        case .epic: 250
         }
     }
 

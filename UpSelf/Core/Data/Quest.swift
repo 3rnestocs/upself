@@ -33,7 +33,7 @@ final class Quest {
     init(id: UUID = UUID(),
          title: String,
          statKind: CharacterAttribute,
-         rewardXP: Int = QuestRewardTier.medium.xp,
+         rewardXP: Int = QuestRewardTier.easy.xp,
          isDaily: Bool = true) {
         self.id = id
         self.title = title
