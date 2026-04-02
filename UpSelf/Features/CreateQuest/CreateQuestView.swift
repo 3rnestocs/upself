@@ -12,6 +12,8 @@ struct CreateQuestView: View {
     @Bindable var viewModel: CreateQuestViewModel
     @FocusState private var isTitleFieldFocused: Bool
 
+    @Environment(\.contentSizedSheetUIKitDetentBridge) private var contentSizedSheetUIKitDetentBridge
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
@@ -57,6 +59,7 @@ struct CreateQuestView: View {
             .padding(.horizontal, AppTheme.Spacing.md)
             .padding(.vertical, AppTheme.Spacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .contentSizedSheetMeasureHeight()
         }
         .scrollDismissesKeyboard(.interactively)
         .simultaneousGesture(
@@ -65,6 +68,7 @@ struct CreateQuestView: View {
             }
         )
         .background(AppTheme.Colors.background.ignoresSafeArea())
+        .contentSizedSheetUIKitDetentBridge(contentSizedSheetUIKitDetentBridge)
     }
 
     private var headerBar: some View {

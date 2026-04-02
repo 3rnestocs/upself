@@ -49,18 +49,40 @@ class AppCoordinator {
         let viewModel = CreateQuestViewModel(modelContext: modelContainer.mainContext) { [weak self] in
             self?.dismissCreateQuestIfPresented()
         }
+
+        let sheetConfig = ContentSizedSheet.Configuration(
+            extraChromeHeight: 36,
+            minimumDetentHeight: 380,
+            initialDetentHeight: 440
+        )
+        let sheetDetentBridge = ContentSizedSheet.UIKitDetentBridge(configuration: sheetConfig)
+
         let root = CreateQuestView(viewModel: viewModel)
             .modelContainer(modelContainer)
+            .environment(\.contentSizedSheetUIKitDetentBridge, sheetDetentBridge)
+
         let hosting = UIHostingController(rootView: root)
         hosting.view.backgroundColor = AppTheme.UIKitColors.background
         hosting.modalPresentationStyle = .pageSheet
+
+        sheetDetentBridge.onInvalidateDetents = { [weak hosting] in
+            hosting?.sheetPresentationController?.invalidateDetents()
+        }
+
         if let sheet = hosting.sheetPresentationController {
-            let mediumDetent = UISheetPresentationController.Detent.medium()
-            sheet.detents = [mediumDetent, .large()]
-            sheet.selectedDetentIdentifier = mediumDetent.identifier
+            let detentIdentifier = UISheetPresentationController.Detent.Identifier("upself.create_quest.content")
+            let contentDetent = UISheetPresentationController.Detent.custom(identifier: detentIdentifier) { [weak sheetDetentBridge] context in
+                guard let sheetDetentBridge else {
+                    return min(sheetConfig.initialDetentHeight, context.maximumDetentValue)
+                }
+                return sheetDetentBridge.resolvedDetentHeight(maximumDetent: context.maximumDetentValue)
+            }
+            sheet.detents = [contentDetent]
+            sheet.selectedDetentIdentifier = detentIdentifier
             sheet.prefersGrabberVisible = true
             sheet.prefersScrollingExpandsWhenScrolledToEdge = false
         }
+
         createQuestHostingController = hosting
         navigationController.present(hosting, animated: true)
     }
