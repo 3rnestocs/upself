@@ -40,6 +40,22 @@
         }
       }
     },
+    "accessibility.quest.complete_button %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete quest: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completar misión: %@"
+          }
+        }
+      }
+    },
     "app.title" : {
       "localizations" : {
         "en" : {
@@ -392,18 +408,34 @@
         }
       }
     },
-    "activity_log.xp.format" : {
+    "activity_log.xp.head" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lld XP · %@"
+            "value" : "+%lld XP"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%lld XP · %@"
+            "value" : "+%lld XP"
+          }
+        }
+      }
+    },
+    "activity_log.xp.quest_head" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld XP · \"%@\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld XP · \"%@\""
           }
         }
       }
@@ -440,22 +472,6 @@
         }
       }
     },
-    "hud.complete_quest" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Complete quest"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Completar misión"
-          }
-        }
-      }
-    },
     "hud.hp.label" : {
       "localizations" : {
         "en" : {
@@ -488,22 +504,6 @@
         }
       }
     },
-    "hud.quest_completion.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Which attribute did you train?"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¿Qué atributo entrenaste?"
-          }
-        }
-      }
-    },
     "hud.quest.daily_badge" : {
       "localizations" : {
         "en" : {
@@ -516,6 +516,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Diaria"
+          }
+        }
+      }
+    },
+    "hud.quest.complete_action" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completar"
+          }
+        }
+      }
+    },
+    "hud.quest.done_today" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done today"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hecha hoy"
+          }
+        }
+      }
+    },
+    "hud.quest.done_once" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completada"
           }
         }
       }

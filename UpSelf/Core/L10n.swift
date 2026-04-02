@@ -22,12 +22,13 @@ enum L10n {
     enum HUD {
         static let hpLabel = LocalizedStringResource("hud.hp.label")
         static let attributesTitle = LocalizedStringResource("hud.attributes.title")
-        static let completeQuest = LocalizedStringResource("hud.complete_quest")
-        static let questCompletionTitle = LocalizedStringResource("hud.quest_completion.title")
         static let questsSectionTitle = LocalizedStringResource("hud.quests.section_title")
         static let questsSectionDaily = LocalizedStringResource("hud.quests.section_daily")
         static let questsSectionNonDaily = LocalizedStringResource("hud.quests.section_non_daily")
         static let questDailyBadge = LocalizedStringResource("hud.quest.daily_badge")
+        static let questCompleteAction = LocalizedStringResource("hud.quest.complete_action")
+        static let questDoneToday = LocalizedStringResource("hud.quest.done_today")
+        static let questDoneOnce = LocalizedStringResource("hud.quest.done_once")
         static let addQuest = LocalizedStringResource("hud.add_quest")
         static let openActivityLog = LocalizedStringResource("hud.open_activity_log")
 
@@ -73,6 +74,14 @@ enum L10n {
 
         static func xpPercent(_ percent: Int) -> String {
             String(localized: "accessibility.xp.percent \(percent)")
+        }
+
+        static func completeQuestButton(_ questTitle: String) -> String {
+            String(
+                format: String(localized: "accessibility.quest.complete_button %@"),
+                locale: .current,
+                arguments: [questTitle as CVarArg]
+            )
         }
     }
 
@@ -138,13 +147,26 @@ enum L10n {
     }
 
     enum ActivityLogCopy {
+        /// First line: XP only; second line (joined with `\n`): stat — for `HistoryLogView` layout.
         static func xpGainMessage(xp: Int, attribute: CharacterAttribute) -> String {
-            let statName = String(localized: L10n.Stats.title(for: attribute))
-            return String(
-                format: String(localized: "activity_log.xp.format"),
+            let head = String(
+                format: String(localized: "activity_log.xp.head"),
                 locale: .current,
-                arguments: [xp as CVarArg, statName as CVarArg]
+                arguments: [xp as CVarArg]
             )
+            let statName = String(localized: L10n.Stats.title(for: attribute))
+            return head + "\n" + statName
+        }
+
+        /// First line: XP + quest title; second line: stat — for `HistoryLogView` layout.
+        static func xpGainQuestMessage(xp: Int, questTitle: String, attribute: CharacterAttribute) -> String {
+            let head = String(
+                format: String(localized: "activity_log.xp.quest_head"),
+                locale: .current,
+                arguments: [xp as CVarArg, questTitle as CVarArg]
+            )
+            let statName = String(localized: L10n.Stats.title(for: attribute))
+            return head + "\n" + statName
         }
 
         static func missedDailyMessage(questTitle: String, dayLabel: String, hp: Int) -> String {
