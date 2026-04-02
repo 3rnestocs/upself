@@ -61,7 +61,12 @@ struct DashboardView: View {
                 }
             }
             .padding(AppTheme.Spacing.md)
+            .frame(maxWidth: .infinity)
+            // ScrollView proposes infinite height; without this, content stretches and stays scrollable
+            // even when shorter than the screen (wasted bounce / empty scroll at the bottom).
+            .fixedSize(horizontal: false, vertical: true)
         }
+        .scrollBounceBehavior(.basedOnSize, axes: .vertical)
         .background(AppTheme.Colors.background.ignoresSafeArea())
     }
 
