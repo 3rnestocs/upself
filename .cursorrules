@@ -1,0 +1,126 @@
+# UpSelf — Cursor AI Rules
+
+## Project summary
+
+- **UpSelf** is an RPG-style life productivity iOS app (discipline, quests, HP, six character attributes).
+- **Stack:** SwiftUI (UI) + **UIKit Coordinators** for navigation, **SwiftData** (offline-first), **Supabase** (sync/auth via SDK, not from UI), SPM, optional **FamilyControls** (Screen Time).
+- **Target:** iOS 17+ (see Xcode project for exact deployment).
+
+---
+
+## Builds and tooling (important)
+
+- **Do not run `xcodebuild`, `swift build`, or automated builds** in the assistant flow unless the user explicitly asks for a build to be run.
+- Assume the user **builds, runs, and tests only manually in Xcode**. Prefer describing what to verify rather than invoking build commands.
+
+---
+
+## Architecture: MVVM-C
+
+1. **Views (SwiftUI):** Declarative only. No business logic. User actions go to the **ViewModel**. UI state comes from **SwiftData** (`@Query` / environment) or ViewModel-owned presentation state — not ad hoc globals.
+2. **ViewModels (`@Observable` / appropriate pattern):** Presentation logic and SwiftData mutations the feature owns. **No UIKit routing** (no navigation stack ownership). Expose navigation intent via callbacks/closures/delegates for the Coordinator.
+3. **Coordinators (UIKit):** Own `UINavigationController`, create `UIHostingController` roots, push/present, inject dependencies into ViewModels.
+4. **Data:** Offline-first. Screens read from SwiftData. **Do not call Supabase from Views or ViewModels** — sync belongs in services/repositories when introduced.
+5. **DI:** Use **`DependencyContainer`** + **`@Injected`** for shared services (`ModelContainer`, seeding, Supabase, etc.).
+
+### Navigation (strict)
+
+- **Never** use `NavigationLink`, `NavigationStack`, or `@Environment(\.presentationMode)` for **primary app navigation**.
+- Route new screens through **`AppCoordinator`** (or feature coordinators) + `UIHostingController`.
+
+### New features (“triad”)
+
+When adding a feature, prefer:
+
+- `Features/<FeatureName>/<FeatureName>View.swift`
+- `Features/<FeatureName>/<FeatureName>ViewModel.swift`
+- Wire entry in **`AppCoordinator`** (or the relevant coordinator), injecting dependencies.
+
+---
+
+## Folder and file naming
+
+- **App entry / shell:** `UpSelfApp.swift`, `AppCoordinator.swift` at `UpSelf/` root (or as already structured).
+- **`Core/`:** Shared infrastructure — `DependencyContainer`, `L10n`, `Theme`, `Data` models & services, `Network`, `AppConfig`, migrations, etc.
+- **`Features/<Feature>/`:** Feature-specific View + ViewModel (and feature-local helpers if needed).
+- **Tests:** `UpSelfTests/`, `UpSelfUITests/` — mirror product naming where useful.
+
+**Naming conventions:**
+
+- Types & files: **PascalCase** (`DashboardView.swift`, `UserProfile.swift`).
+- SwiftData models & domain enums: clear, stable names; persisted “kind” fields backed by **`CharacterAttribute`**-style enums (or equivalent), not magic strings in UI.
+- Bundle resources: follow Apple conventions (`Localizable.xcstrings`, asset catalogs, fonts registered in Info / target).
+
+---
+
+## Theme and visuals (`AppTheme`)
+
+- **Single source of truth for UI tokens:** `UpSelf/Core/Theme/AppTheme.swift` — **colors, fonts, spacing, radii, strokes, bar heights, shadows**, etc.
+- **Do not** scatter raw hex colors, magic `CGFloat`s for padding/corner radius, or ad hoc `Font.custom` calls across views. **Use `AppTheme`** (e.g. `AppTheme.Colors.*`, `AppTheme.Fonts.*`, `AppTheme.Spacing.*`, `AppTheme.Radius.*`).
+- **Semantic palette (Amber Terminal):** background `#121212`, cards `#242424`, accent/XP `#FFB000`, alert/HP danger `#FF4500` — expressed via `AppTheme.Colors` (not duplicated in views).
+- Custom fonts (e.g. Quantico) stay configured **once** in `AppTheme.Fonts`; views only call `AppTheme.Fonts.ui(...)` / `mono(...)`.
+
+---
+
+## Localization (`L10n`)
+
+- All user-visible strings go through **`UpSelf/Core/L10n.swift`** (`L10n.App`, `L10n.HUD`, `L10n.Stats`, etc.).
+- **Workflow for new copy:** (1) Add keys + translations to **`Localizable.xcstrings`**, (2) Add typed accessors in **`L10n.swift`**, (3) Use **`L10n` from Views/ViewModels** — **not** `String(localized: "…")` or raw keys in SwiftUI.
+- Keep stat names and other enumerated UI copy aligned with **`CharacterAttribute`** + `L10n.Stats` where applicable.
+
+---
+
+## Data and domain
+
+- **SwiftData** models live under `Core/Data/` (e.g. `UserProfile`, `CharacterStat`, `Quest`). Use enums (`CharacterAttribute`, `QuestRewardTier`, …) for fixed sets of values; persist stable `rawValue`s.
+- **Seeding / migration:** `DataSeedService`, `LegacyKindMigration`, etc. — keep one-time and idempotent logic out of Views.
+
+---
+
+## Scope and style for AI edits
+
+- Match existing style: imports, naming, and abstraction level in the touched area.
+- **Minimal diffs:** change only what the task requires; no drive-by refactors or unrelated files.
+- Do **not** add unsolicited documentation files (README/plan) unless the user asks.
+
+---
+
+## Git: branches and commits
+
+Goal: **readable history**, **small reviewable units**, and **modular changes** — avoid “everything in one commit.”
+
+### Branches
+
+- Use **short-lived topic branches** per task or coherent slice of work (not long-running mega-branches).
+- Suggested prefixes (pick one style and stay consistent):
+  - `feature/<short-name>` — new behavior or screens (e.g. `feature/quest-list`).
+  - `fix/<short-name>` — bugfixes.
+  - `chore/<short-name>` — tooling, deps, formatting-only, non-product refactors when isolated.
+- **Merge to main** when the branch represents one completed story/fix; prefer **linear history** where the team agrees (rebase + merge, or squash-merge with a good message) — follow whatever the repo already uses.
+
+### Commits
+
+- **One logical change per commit** (one concern: e.g. theme tokens only, or L10n keys only, or one feature file). Split large work into **multiple commits** on the same branch rather than one massive diff.
+- **Subject line:** **single line**, **~72 characters or less**, imperative mood (“Add…”, “Fix…”, “Refactor…”).
+- Prefer **scoped prefixes** so history is scannable and modular:
+  - Format: `type(scope): summary`
+  - **Types (examples):** `feat`, `fix`, `refactor`, `style` (UI-only), `docs`, `chore`, `test`.
+  - **Scope (examples):** `dashboard`, `theme`, `l10n`, `data`, `coordinator`, `deps`.
+  - Examples: `feat(dashboard): add stat grid layout`, `fix(l10n): correct Spanish stat label`, `refactor(theme): centralize bar heights in AppTheme`.
+- **Body** optional; use when the *why* isn’t obvious. Still keep commits **small** enough that the subject is enough most of the time.
+- **Do not** mix unrelated edits in one commit (e.g. don’t combine a feature with a dependency bump and a rename in the same commit).
+
+### For AI-assisted work
+
+- When suggesting or performing git operations, **prefer several small commits** over one large commit when changes span layers (Core vs Feature vs localization).
+
+---
+
+## Quick checklist before finishing a UI task
+
+- [ ] No `NavigationLink` / primary `NavigationStack` routing introduced.
+- [ ] Colors/spacing/fonts from **`AppTheme`**.
+- [ ] Strings from **`L10n`** + **`Localizable.xcstrings`**.
+- [ ] SwiftData reads in Views via **`@Query`** (or injected models) where appropriate.
+- [ ] No automated **build** run by the assistant (user builds in Xcode).
+- [ ] If committing: **small, scoped commits** with **one-line subjects** (`type(scope): summary`), not one huge catch-all commit.
