@@ -7,18 +7,15 @@
 
 import Foundation
 import SwiftData
+#if canImport(UIKit)
+import UIKit
+#endif
 
 @MainActor
 @Observable
 final class DashboardViewModel {
 
     private let modelContext: ModelContext
-
-    /// Set by `AppCoordinator` to present the attribute picker as a UIKit sheet.
-    var onPresentQuestCompletion: (([CharacterStat]) -> Void)?
-
-    /// Set by `AppCoordinator` to dismiss the quest completion sheet after XP is saved.
-    var onDismissQuestCompletion: (() -> Void)?
 
     /// Set by `AppCoordinator` to present the create-quest sheet.
     var onPresentCreateQuest: (() -> Void)?
@@ -30,10 +27,6 @@ final class DashboardViewModel {
         self.modelContext = modelContext
     }
 
-    func completeQuest(stats: [CharacterStat]) {
-        onPresentQuestCompletion?(stats)
-    }
-
     func presentCreateQuest() {
         onPresentCreateQuest?()
     }
@@ -42,26 +35,35 @@ final class DashboardViewModel {
         onPresentHistoryLog?()
     }
 
-    func addXP(to stat: CharacterStat, tier: QuestRewardTier = .easy) {
+    /// Awards XP for this quest’s tier, logs activity, sets `lastCompleted` (per calendar day for dailies).
+    func completePersistedQuest(_ quest: Quest) {
+        guard quest.canComplete() else { return }
+        guard let attribute = quest.statKind,
+              let profile = quest.user,
+              let stat = profile.stats.first(where: { $0.kindRawValue == attribute.rawValue })
+        else { return }
+
+        let tier = QuestRewardTier(xp: quest.rewardXP) ?? .easy
         let delta = tier.xp
+        let previousCompleted = quest.lastCompleted
+
         stat.currentXP += delta
+        ActivityLogService.insertQuestXPGain(
+            context: modelContext,
+            stat: stat,
+            tier: tier,
+            questTitle: quest.title
+        )
+        quest.lastCompleted = Date()
+
         do {
-            ActivityLogService.insertXPGain(context: modelContext, stat: stat, tier: tier)
-            markDailyQuestsCompleted(for: stat)
             try modelContext.save()
-            onDismissQuestCompletion?()
+            #if canImport(UIKit)
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            #endif
         } catch {
             stat.currentXP -= delta
-        }
-    }
-
-    /// Until per-quest completion is wired, completing XP for an attribute marks **all** daily quests of that attribute as done for today (`Quest.lastCompleted`).
-    private func markDailyQuestsCompleted(for stat: CharacterStat) {
-        guard let profile = stat.user, let attribute = stat.kind else { return }
-        let now = Date()
-        for quest in profile.quests where quest.isDaily {
-            guard quest.statKind == attribute else { continue }
-            quest.lastCompleted = now
+            quest.lastCompleted = previousCompleted
         }
     }
 }

@@ -23,12 +23,16 @@ enum AppTheme {
         static let card = Color(red: 36 / 255, green: 36 / 255, blue: 36 / 255)
         /// XP / accent — `#FFB000`
         static let accentXP = Color(red: 255 / 255, green: 176 / 255, blue: 0 / 255)
+        /// Primary CTA fill (same amber as `accentXP`); pair with `background` for label text.
+        static let amber = accentXP
         /// HP / danger — `#FF4500`
         static let alertHP = Color(red: 255 / 255, green: 69 / 255, blue: 0 / 255)
         /// Secondary label on dark surfaces
         static let secondaryLabel = Color.white.opacity(0.65)
         /// Hairline borders on cards
         static let cardStroke = Color.white.opacity(0.12)
+        /// Activity log: attribute line under XP / quest (distinct from date + accent XP line)
+        static let activityLogStatLine = Color.white.opacity(0.62)
     }
 
     enum Fonts {
@@ -87,6 +91,8 @@ enum AppTheme {
         static let md: CGFloat = 16
         static let lg: CGFloat = 24
         static let xl: CGFloat = 32
+        /// Extra trailing space below each activity log block (terminal readability).
+        static let logEntryBottom: CGFloat = 12
     }
 
     enum Radius {

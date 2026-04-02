@@ -57,17 +57,6 @@ struct DashboardView: View {
                 if !dailyQuests.isEmpty || !nonDailyQuests.isEmpty {
                     questsSection
                 }
-
-                Button {
-                    viewModel.completeQuest(stats: stats)
-                } label: {
-                    Text(L10n.HUD.completeQuest)
-                        .font(AppTheme.Fonts.ui(.footnote))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, AppTheme.Spacing.sm)
-                }
-                .buttonStyle(.bordered)
-                .tint(AppTheme.Colors.accentXP.opacity(0.85))
             }
             .padding(AppTheme.Spacing.md)
         }
@@ -135,7 +124,10 @@ struct DashboardView: View {
     }
 
     private func questRow(_ quest: Quest) -> some View {
-        HStack(alignment: .top, spacing: AppTheme.Spacing.md) {
+        let done = quest.displayAsCompleted()
+        let canComplete = quest.canComplete()
+
+        return HStack(alignment: .center, spacing: AppTheme.Spacing.md) {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text(quest.title)
                     .font(AppTheme.Fonts.ui(.subheadline))
@@ -149,11 +141,34 @@ struct DashboardView: View {
                 }
             }
             Spacer(minLength: AppTheme.Spacing.sm)
+
             VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
                 if let tier = quest.rewardTier {
                     Text(L10n.HUD.xpFormat(xp: tier.xp))
                         .font(AppTheme.Fonts.mono(.subheadline))
                         .foregroundStyle(AppTheme.Colors.accentXP)
+                }
+
+                if canComplete {
+                    Button {
+                        viewModel.completePersistedQuest(quest)
+                    } label: {
+                        Text(L10n.HUD.questCompleteAction)
+                            .font(AppTheme.Fonts.ui(.caption))
+                            .fontWeight(.semibold)
+                            .foregroundStyle(AppTheme.Colors.background)
+                            .padding(.horizontal, AppTheme.Spacing.sm)
+                            .padding(.vertical, AppTheme.Spacing.xs)
+                            .background(AppTheme.Colors.amber)
+                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.Radius.chip))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(L10n.Accessibility.completeQuestButton(quest.title))
+                } else if done {
+                    Text(quest.isDaily ? L10n.HUD.questDoneToday : L10n.HUD.questDoneOnce)
+                        .font(AppTheme.Fonts.mono(.caption2))
+                        .foregroundStyle(AppTheme.Colors.accentXP.opacity(0.9))
+                        .padding(.vertical, AppTheme.Spacing.xs)
                 }
             }
         }
@@ -167,6 +182,7 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: AppTheme.Radius.card)
                 .stroke(AppTheme.Colors.cardStroke, lineWidth: AppTheme.Stroke.cardLine)
         )
+        .opacity(done ? 0.6 : 1)
     }
 
     private var hpSection: some View {
@@ -304,6 +320,7 @@ struct DashboardView: View {
                     .frame(width: geo.size.width * progress)
             }
         }
+        .animation(.easeInOut(duration: 0.35), value: stat.currentXP)
         .frame(height: AppTheme.Bar.xpHeight)
         .accessibilityLabel(L10n.Accessibility.xpProgress)
         .accessibilityValue(L10n.Accessibility.xpPercent(Int(progress * 100)))
