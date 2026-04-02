@@ -38,7 +38,7 @@ struct DashboardView: View {
                 statsSection
 
                 Button {
-                    viewModel.completeQuest()
+                    viewModel.completeQuest(stats: stats)
                 } label: {
                     Text(L10n.HUD.completeQuest)
                         .font(AppTheme.Fonts.ui(.footnote))
@@ -185,7 +185,7 @@ struct DashboardView: View {
     }
 
     private func xpProgressBar(stat: CharacterStat) -> some View {
-        let progress = xpBarFraction(for: stat)
+        let progress = stat.xpProgressFraction
         return GeometryReader { geo in
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: AppTheme.Radius.bar / 2)
@@ -199,20 +199,6 @@ struct DashboardView: View {
         .accessibilityLabel(L10n.Accessibility.xpProgress)
         .accessibilityValue(L10n.Accessibility.xpPercent(Int(progress * 100)))
     }
-
-    /// Maps current XP into 0...1 for the bar (aligned with `CharacterStat.level` curve).
-    private func xpBarFraction(for stat: CharacterStat) -> CGFloat {
-        let base = 50.0
-        let m = 1.05
-        let xp = Double(stat.currentXP)
-        let lvl = stat.level
-        if lvl <= 1, stat.currentXP <= 0 { return 0 }
-        let lower = lvl > 1 ? base * pow(m, Double(lvl - 1)) : 0
-        let upper = base * pow(m, Double(lvl))
-        let span = upper - lower
-        guard span > 0 else { return 0 }
-        return CGFloat(min(1, max(0, (xp - lower) / span)))
-    }
 }
 
 #Preview("Dashboard") {
@@ -222,6 +208,6 @@ struct DashboardView: View {
     let ctx = ModelContext(container)
     DataSeedService().seedIfNeeded(context: ctx)
 
-    return DashboardView(viewModel: DashboardViewModel())
+    return DashboardView(viewModel: DashboardViewModel(modelContext: ctx))
         .modelContainer(container)
 }

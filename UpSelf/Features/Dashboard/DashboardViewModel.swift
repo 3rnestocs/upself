@@ -6,13 +6,36 @@
 //
 
 import Foundation
+import SwiftData
 
 @MainActor
 @Observable
 final class DashboardViewModel {
 
-    /// Placeholder until quests are wired to SwiftData.
-    func completeQuest() {
-        // Intentionally empty — Phase 1 placeholder per plan.
+    private let modelContext: ModelContext
+
+    /// Set by `AppCoordinator` to present the attribute picker as a UIKit sheet.
+    var onPresentQuestCompletion: (([CharacterStat]) -> Void)?
+
+    /// Set by `AppCoordinator` to dismiss the quest completion sheet after XP is saved.
+    var onDismissQuestCompletion: (() -> Void)?
+
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+    }
+
+    func completeQuest(stats: [CharacterStat]) {
+        onPresentQuestCompletion?(stats)
+    }
+
+    func addXP(to stat: CharacterStat, tier: QuestRewardTier = .easy) {
+        let delta = tier.xp
+        stat.currentXP += delta
+        do {
+            try modelContext.save()
+            onDismissQuestCompletion?()
+        } catch {
+            stat.currentXP -= delta
+        }
     }
 }
