@@ -15,6 +15,7 @@ class AppCoordinator {
 
     private var dashboardViewModel: DashboardViewModel?
     private weak var questCompletionHostingController: UIViewController?
+    private weak var createQuestHostingController: UIViewController?
 
     init(
         navigationController: UINavigationController = UINavigationController(),
@@ -32,6 +33,9 @@ class AppCoordinator {
         }
         viewModel.onDismissQuestCompletion = { [weak self] in
             self?.dismissQuestCompletionIfPresented()
+        }
+        viewModel.onPresentCreateQuest = { [weak self] in
+            self?.presentCreateQuest()
         }
 
         let root = DashboardView(viewModel: viewModel)
@@ -64,12 +68,39 @@ class AppCoordinator {
         navigationController.present(hosting, animated: true)
     }
 
+    func presentCreateQuest() {
+        let viewModel = CreateQuestViewModel(modelContext: modelContainer.mainContext) { [weak self] in
+            self?.dismissCreateQuestIfPresented()
+        }
+        let root = CreateQuestView(viewModel: viewModel)
+            .modelContainer(modelContainer)
+        let hosting = UIHostingController(rootView: root)
+        hosting.view.backgroundColor = AppTheme.UIKitColors.background
+        hosting.modalPresentationStyle = .pageSheet
+        if let sheet = hosting.sheetPresentationController {
+            let mediumDetent = UISheetPresentationController.Detent.medium()
+            sheet.detents = [mediumDetent, .large()]
+            sheet.selectedDetentIdentifier = mediumDetent.identifier
+            sheet.prefersGrabberVisible = true
+            sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+        }
+        createQuestHostingController = hosting
+        navigationController.present(hosting, animated: true)
+    }
+
     private func dismissQuestCompletionIfPresented() {
         guard let presented = questCompletionHostingController ?? navigationController.presentedViewController else {
             return
         }
         presented.dismiss(animated: true) { [weak self] in
             self?.questCompletionHostingController = nil
+        }
+    }
+
+    private func dismissCreateQuestIfPresented() {
+        guard let hosting = createQuestHostingController else { return }
+        hosting.dismiss(animated: true) { [weak self] in
+            self?.createQuestHostingController = nil
         }
     }
 }
