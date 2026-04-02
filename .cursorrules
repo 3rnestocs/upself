@@ -41,7 +41,7 @@ When adding a feature, prefer:
 ## Folder and file naming
 
 - **App entry / shell:** `UpSelfApp.swift`, `AppCoordinator.swift` at `UpSelf/` root (or as already structured).
-- **`Core/`:** Shared infrastructure — `DependencyContainer`, `L10n`, `Theme`, `Data` models & services, `Network`, `AppConfig`, migrations, etc.
+- **`Core/`:** Shared infrastructure — `DependencyContainer`, `L10n`, `Theme`, `Data` models & services, `Network`, `AppConfig`, etc.
 - **`Features/<Feature>/`:** Feature-specific View + ViewModel (and feature-local helpers if needed).
 - **Tests:** `UpSelfTests/`, `UpSelfUITests/` — mirror product naming where useful.
 
@@ -73,7 +73,8 @@ When adding a feature, prefer:
 ## Data and domain
 
 - **SwiftData** models live under `Core/Data/` (e.g. `UserProfile`, `CharacterStat`, `Quest`). Use enums (`CharacterAttribute`, `QuestRewardTier`, …) for fixed sets of values; persist stable `rawValue`s.
-- **Seeding / migration:** `DataSeedService`, `LegacyKindMigration`, etc. — keep one-time and idempotent logic out of Views.
+- **Seeding:** `DataSeedService` (first-launch, idempotent) — keep out of Views.
+- **No DB migrations or compatibility shims:** Do **not** add SwiftData migration plans, **`@Attribute(originalName:)`** column renames for old stores, one-off “rewrite legacy rows” services, or similar. If the schema or core models change, the workflow is **delete the app / wipe the local store and fresh install** with the new models. Do not invest in upgrade paths unless the user explicitly asks.
 
 ---
 
@@ -124,3 +125,4 @@ Goal: **readable history**, **small reviewable units**, and **modular changes** 
 - [ ] SwiftData reads in Views via **`@Query`** (or injected models) where appropriate.
 - [ ] No automated **build** run by the assistant (user builds in Xcode).
 - [ ] If committing: **small, scoped commits** with **one-line subjects** (`type(scope): summary`), not one huge catch-all commit.
+- [ ] No new **migration / legacy-store** logic for SwiftData — schema changes = fresh install (see **Data and domain**).
