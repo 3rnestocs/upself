@@ -13,22 +13,31 @@ import SwiftData
 final class Quest {
     @Attribute(.unique) var id: UUID
     var title: String
-    var statType: String // Logística, Maestría, Carisma, Voluntad, Vitalidad, Economía
-    var rewardXP: Int    // S=10, M=25, L=50, XL=250
+    /// Persisted `CharacterAttribute.rawValue` (column historically named `statType`).
+    @Attribute(originalName: "statType") var statKindRawValue: String
+    /// Prefer `QuestRewardTier.xp` when assigning; values 10 / 25 / 50 / 250 are the canonical tiers.
+    var rewardXP: Int
     var isDaily: Bool
     var lastCompleted: Date?
     
-    // Relación opcional con el Perfil (para filtrar por usuario si fuera necesario)
     var user: UserProfile?
 
-    init(id: UUID = UUID(), 
-         title: String, 
-         statType: String, 
-         rewardXP: Int = 25, 
+    var statKind: CharacterAttribute? {
+        CharacterAttribute(rawValue: statKindRawValue)
+    }
+
+    var rewardTier: QuestRewardTier? {
+        QuestRewardTier(xp: rewardXP)
+    }
+
+    init(id: UUID = UUID(),
+         title: String,
+         statKind: CharacterAttribute,
+         rewardXP: Int = QuestRewardTier.medium.xp,
          isDaily: Bool = true) {
         self.id = id
         self.title = title
-        self.statType = statType
+        self.statKindRawValue = statKind.rawValue
         self.rewardXP = rewardXP
         self.isDaily = isDaily
     }

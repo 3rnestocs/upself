@@ -12,8 +12,13 @@ import SwiftData
 @Model
 final class CharacterStat {
     @Attribute(.unique) var id: UUID
-    var name: String // Logística, Maestría, Carisma, Voluntad, Vitalidad, Economía
+    /// Persisted `CharacterAttribute.rawValue` (column historically named `name`).
+    @Attribute(originalName: "name") var kindRawValue: String
     var currentXP: Int
+
+    var kind: CharacterAttribute? {
+        CharacterAttribute(rawValue: kindRawValue)
+    }
     
     var level: Int {
         let baseXP = 50.0
@@ -25,9 +30,9 @@ final class CharacterStat {
     
     var user: UserProfile?
 
-    init(id: UUID = UUID(), name: String, currentXP: Int = 0) {
+    init(id: UUID = UUID(), kind: CharacterAttribute, currentXP: Int = 0) {
         self.id = id
-        self.name = name
+        self.kindRawValue = kind.rawValue
         self.currentXP = currentXP
     }
 }
