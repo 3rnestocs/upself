@@ -10,23 +10,16 @@ import SwiftData
 
 @main
 struct UpSelfApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    let appCoordinator = AppCoordinator()
+    // Obtenemos el contenedor desde nuestro DI central
+    @Injected(\.modelContainer) var container
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            CoordinatorView(coordinator: appCoordinator)
+                .ignoresSafeArea()
+                // Esto habilita @Query y @Environment(\.modelContext) en TODAS las vistas
+                .modelContainer(container)
         }
-        .modelContainer(sharedModelContainer)
     }
 }

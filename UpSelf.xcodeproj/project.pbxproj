@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8FF0EBD72F7EE5DD00BEB964 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 8FF0EBD62F7EE5DD00BEB964 /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		8FF0EBB62F7EE16300BEB964 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8FF0EBD72F7EE5DD00BEB964 /* Supabase in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = UpSelf;
 			packageProductDependencies = (
+				8FF0EBD62F7EE5DD00BEB964 /* Supabase */,
 			);
 			productName = UpSelf;
 			productReference = 8FF0EBA62F7EE16200BEB964 /* UpSelf.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 8FF0EB9D2F7EE16200BEB964;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8FF0EBD52F7EE5DD00BEB964 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8FF0EBA72F7EE16200BEB964 /* Products */;
 			projectDirPath = "";
@@ -615,6 +624,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8FF0EBD52F7EE5DD00BEB964 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = exactVersion;
+				version = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8FF0EBD62F7EE5DD00BEB964 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8FF0EBD52F7EE5DD00BEB964 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8FF0EB9E2F7EE16200BEB964 /* Project object */;
 }
