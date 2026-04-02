@@ -113,6 +113,22 @@
         }
       }
     },
+    "hud.quest_completion.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which attribute did you train?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué atributo entrenaste?"
+          }
+        }
+      }
+    },
     "hud.hp.label" : {
       "localizations" : {
         "en" : {

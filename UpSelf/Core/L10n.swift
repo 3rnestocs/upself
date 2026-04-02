@@ -23,6 +23,7 @@ enum L10n {
         static let hpLabel = LocalizedStringResource("hud.hp.label")
         static let attributesTitle = LocalizedStringResource("hud.attributes.title")
         static let completeQuest = LocalizedStringResource("hud.complete_quest")
+        static let questCompletionTitle = LocalizedStringResource("hud.quest_completion.title")
 
         static func hpPair(current: Int, max: Int) -> String {
             String(localized: "hp.pair \(current) \(max)")
