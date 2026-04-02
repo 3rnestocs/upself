@@ -11,6 +11,7 @@ import SwiftUI
 struct DashboardView: View {
     @Query(sort: \UserProfile.id) private var profiles: [UserProfile]
     @Query(sort: \CharacterStat.kindRawValue) private var allStats: [CharacterStat]
+    @Query(sort: \Quest.title) private var allQuests: [Quest]
 
     private let viewModel: DashboardViewModel
 
@@ -30,12 +31,32 @@ struct DashboardView: View {
         }
     }
 
+    private var quests: [Quest] {
+        guard let id = profile?.id else { return [] }
+        return allQuests.filter { $0.user?.id == id }
+    }
+
+    private var dailyQuests: [Quest] {
+        quests
+            .filter(\.isDaily)
+            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+    }
+
+    private var nonDailyQuests: [Quest] {
+        quests
+            .filter { !$0.isDaily }
+            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
                 header
                 hpSection
                 statsSection
+                if !dailyQuests.isEmpty || !nonDailyQuests.isEmpty {
+                    questsSection
+                }
 
                 Button {
                     viewModel.completeQuest(stats: stats)
@@ -54,10 +75,89 @@ struct DashboardView: View {
     }
 
     private var header: some View {
-        Text(L10n.App.title)
-            .font(AppTheme.Fonts.ui(.largeTitle))
-            .fontWeight(.semibold)
-            .foregroundStyle(AppTheme.Colors.secondaryLabel)
+        HStack(alignment: .firstTextBaseline) {
+            Text(L10n.App.title)
+                .font(AppTheme.Fonts.ui(.largeTitle))
+                .fontWeight(.semibold)
+                .foregroundStyle(AppTheme.Colors.secondaryLabel)
+            Spacer(minLength: AppTheme.Spacing.sm)
+            Button {
+                viewModel.presentCreateQuest()
+            } label: {
+                Image(systemName: "plus.circle.fill")
+                    .font(.title2)
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(AppTheme.Colors.accentXP, AppTheme.Colors.card)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L10n.HUD.addQuest)
+        }
+    }
+
+    private var questsSection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
+            Text(L10n.HUD.questsSectionTitle)
+                .font(AppTheme.Fonts.ui(.headline))
+                .foregroundStyle(AppTheme.Colors.secondaryLabel)
+
+            if !dailyQuests.isEmpty {
+                questSubsection(title: L10n.HUD.questsSectionDaily, quests: dailyQuests)
+            }
+
+            if !nonDailyQuests.isEmpty {
+                questSubsection(title: L10n.HUD.questsSectionNonDaily, quests: nonDailyQuests)
+            }
+        }
+    }
+
+    private func questSubsection(title: LocalizedStringResource, quests: [Quest]) -> some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+            Text(title)
+                .font(AppTheme.Fonts.ui(.subheadline))
+                .fontWeight(.semibold)
+                .foregroundStyle(AppTheme.Colors.secondaryLabel)
+
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                ForEach(quests, id: \.id) { quest in
+                    questRow(quest)
+                }
+            }
+        }
+    }
+
+    private func questRow(_ quest: Quest) -> some View {
+        HStack(alignment: .top, spacing: AppTheme.Spacing.md) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                Text(quest.title)
+                    .font(AppTheme.Fonts.ui(.subheadline))
+                    .fontWeight(.medium)
+                    .foregroundStyle(Color.white.opacity(0.92))
+                    .lineLimit(3)
+                if let kind = quest.statKind {
+                    Text(L10n.Stats.title(for: kind))
+                        .font(AppTheme.Fonts.mono(.caption))
+                        .foregroundStyle(AppTheme.Colors.secondaryLabel)
+                }
+            }
+            Spacer(minLength: AppTheme.Spacing.sm)
+            VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
+                if let tier = quest.rewardTier {
+                    Text(L10n.HUD.xpFormat(xp: tier.xp))
+                        .font(AppTheme.Fonts.mono(.subheadline))
+                        .foregroundStyle(AppTheme.Colors.accentXP)
+                }
+            }
+        }
+        .padding(AppTheme.Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: AppTheme.Radius.card)
+                .fill(AppTheme.Colors.card.opacity(0.92))
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.Radius.card)
+                .stroke(AppTheme.Colors.cardStroke, lineWidth: AppTheme.Stroke.cardLine)
+        )
     }
 
     private var hpSection: some View {
