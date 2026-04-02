@@ -41,4 +41,24 @@ final class Quest {
         self.rewardXP = rewardXP
         self.isDaily = isDaily
     }
+
+    // MARK: - Completion (calendar day = `Calendar.current` / user locale)
+
+    /// Whether the row should read as “done”: dailies only when completed **today**; one-time forever after first completion.
+    func displayAsCompleted(referenceDate: Date = .now, calendar: Calendar = .current) -> Bool {
+        guard let completed = lastCompleted else { return false }
+        if isDaily {
+            return calendar.isDate(completed, inSameDayAs: referenceDate)
+        }
+        return true
+    }
+
+    /// Whether the user can earn XP again for this quest right now.
+    func canComplete(referenceDate: Date = .now, calendar: Calendar = .current) -> Bool {
+        if isDaily {
+            guard let completed = lastCompleted else { return true }
+            return !calendar.isDate(completed, inSameDayAs: referenceDate)
+        }
+        return lastCompleted == nil
+    }
 }

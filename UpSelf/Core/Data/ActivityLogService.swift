@@ -18,6 +18,18 @@ enum ActivityLogService {
         context.insert(log)
     }
 
+    /// XP from completing a specific persisted quest (title + attribute in copy).
+    static func insertQuestXPGain(context: ModelContext, stat: CharacterStat, tier: QuestRewardTier, questTitle: String) {
+        guard let attribute = stat.kind, let profile = stat.user else { return }
+        let message = L10n.ActivityLogCopy.xpGainQuestMessage(
+            xp: tier.xp,
+            questTitle: questTitle,
+            attribute: attribute
+        )
+        let log = ActivityLog(message: message, kind: .xpGain, user: profile)
+        context.insert(log)
+    }
+
     static func insertHPLoss(context: ModelContext, profile: UserProfile, message: String) {
         let log = ActivityLog(message: message, kind: .hpLoss, user: profile)
         context.insert(log)
