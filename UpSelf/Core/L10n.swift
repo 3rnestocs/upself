@@ -29,6 +29,7 @@ enum L10n {
         static let questsSectionNonDaily = LocalizedStringResource("hud.quests.section_non_daily")
         static let questDailyBadge = LocalizedStringResource("hud.quest.daily_badge")
         static let addQuest = LocalizedStringResource("hud.add_quest")
+        static let openActivityLog = LocalizedStringResource("hud.open_activity_log")
 
         static func hpPair(current: Int, max: Int) -> String {
             String(localized: "hp.pair \(current) \(max)")
@@ -129,5 +130,21 @@ enum L10n {
         static let economyTrackExpenses = LocalizedStringResource("seed.quest.economy.track_expenses")
         static let economyNoDelivery = LocalizedStringResource("seed.quest.economy.no_delivery")
         static let charismaCallFriend = LocalizedStringResource("seed.quest.charisma.call_friend")
+    }
+
+    enum HistoryLog {
+        static let title = LocalizedStringResource("history_log.title")
+        static let empty = LocalizedStringResource("history_log.empty")
+    }
+
+    enum ActivityLogCopy {
+        static func xpGainMessage(xp: Int, attribute: CharacterAttribute) -> String {
+            let statName = String(localized: L10n.Stats.title(for: attribute))
+            return String(
+                format: String(localized: "activity_log.xp.format"),
+                locale: .current,
+                arguments: [xp as CVarArg, statName as CVarArg]
+            )
+        }
     }
 }
