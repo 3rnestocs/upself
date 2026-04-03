@@ -13,6 +13,7 @@ struct DashboardView: View {
     @Query(sort: \CharacterStat.kindRawValue) private var allStats: [CharacterStat]
     @Query(sort: \Quest.title) private var allQuests: [Quest]
 
+    @Bindable private var gameClock = DependencyContainer[\.gameClock]
     @State private var showStatsInfo = false
 
     private let viewModel: DashboardViewModel
@@ -45,7 +46,8 @@ struct DashboardView: View {
     }
 
     private var completedDailiesToday: Int {
-        dailyQuests.filter { $0.displayAsCompleted() }.count
+        let ref = gameClock.now
+        return dailyQuests.filter { $0.displayAsCompleted(referenceDate: ref) }.count
     }
 
     private var hasOneOffQuestsOnly: Bool {

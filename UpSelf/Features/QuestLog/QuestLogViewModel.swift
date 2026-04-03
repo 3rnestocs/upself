@@ -16,14 +16,17 @@ import UIKit
 final class QuestLogViewModel {
 
     private let modelContext: ModelContext
+    private let gameClock: GameClock
 
-    init(modelContext: ModelContext) {
+    init(modelContext: ModelContext, gameClock: GameClock) {
         self.modelContext = modelContext
+        self.gameClock = gameClock
     }
 
     /// Awards XP for this quest’s tier, logs activity, sets `lastCompleted` (per calendar day for dailies).
     func completePersistedQuest(_ quest: Quest) {
-        guard quest.canComplete() else { return }
+        let ref = gameClock.now
+        guard quest.canComplete(referenceDate: ref) else { return }
         guard let attribute = quest.statKind,
               let profile = quest.user,
               let stat = profile.stats.first(where: { $0.kindRawValue == attribute.rawValue })
@@ -40,7 +43,7 @@ final class QuestLogViewModel {
             tier: tier,
             questTitle: quest.title
         )
-        quest.lastCompleted = Date()
+        quest.lastCompleted = ref
 
         do {
             try modelContext.save()

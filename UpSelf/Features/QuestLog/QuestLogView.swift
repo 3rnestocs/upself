@@ -17,9 +17,12 @@ struct QuestLogView: View {
     @Query(sort: \UserProfile.id) private var profiles: [UserProfile]
     @Query(sort: \Quest.title) private var allQuests: [Quest]
 
+    @Bindable private var gameClock = DependencyContainer[\.gameClock]
+
     private let viewModel: QuestLogViewModel
 
     @State private var filter: QuestLogFilter = .daily
+    @State private var showInstructions = false
 
     init(viewModel: QuestLogViewModel) {
         self.viewModel = viewModel
@@ -36,9 +39,10 @@ struct QuestLogView: View {
             case .oneOff: return !quest.isDaily
             }
         }
+        let ref = gameClock.now
         return subset.sorted { a, b in
-            let ad = a.displayAsCompleted()
-            let bd = b.displayAsCompleted()
+            let ad = a.displayAsCompleted(referenceDate: ref)
+            let bd = b.displayAsCompleted(referenceDate: ref)
             if ad != bd { return !ad && bd }
             return a.title.localizedCaseInsensitiveCompare(b.title) == .orderedAscending
         }
@@ -80,19 +84,41 @@ struct QuestLogView: View {
         .padding(AppTheme.Spacing.md)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(AppTheme.Colors.background)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showInstructions = true
+                } label: {
+                    Image(systemName: "info.circle")
+                        .foregroundStyle(AppTheme.Colors.accentXP)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(String(localized: L10n.QuestLog.instructionsButtonAccessibility))
+            }
+        }
+        .alert(String(localized: L10n.QuestLog.instructionsTitle), isPresented: $showInstructions) {
+            Button(String(localized: L10n.Common.ok), role: .cancel) {}
+        } message: {
+            Text(L10n.QuestLog.instructionsBody)
+        }
     }
 
     @ViewBuilder
     private func questRow(_ quest: Quest) -> some View {
-        let done = quest.displayAsCompleted()
-        let canComplete = quest.canComplete()
+        let ref = gameClock.now
+        let done = quest.displayAsCompleted(referenceDate: ref)
+        let canComplete = quest.canComplete(referenceDate: ref)
         let content = questRowContent(quest, done: done, canComplete: canComplete)
 
         if canComplete {
             content
-                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                .swipeActions(edge: .leading, allowsFullSwipe: false) {
                     Button {
-                        viewModel.completePersistedQuest(quest)
+                        let q = quest
+                        // Defer mutation until List/UIKit finishes swipe layout (avoids UICollectionView inconsistency).
+                        DispatchQueue.main.async {
+                            viewModel.completePersistedQuest(q)
+                        }
                     } label: {
                         Label {
                             Text(L10n.HUD.questCompleteAction)
