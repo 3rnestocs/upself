@@ -10,6 +10,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \UserProfile.id) private var profiles: [UserProfile]
     @Bindable private var gameClock = DependencyContainer[\.gameClock]
 
     /// Draft offset; tap **Apply** to use it for dailies / penalties (saved in DEBUG).
@@ -45,6 +46,41 @@ struct SettingsView: View {
                 }
             } header: {
                 Text(L10n.Settings.aboutSection)
+            }
+
+            Section {
+                if let profile = profiles.first {
+                    Stepper(value: Binding(
+                        get: { profile.lockdownMinEpicQuestsToClear },
+                        set: { newValue in
+                            profile.lockdownMinEpicQuestsToClear = max(0, min(20, newValue))
+                            normalizeLockdownMinimums(profile)
+                            try? modelContext.save()
+                        }
+                    ), in: 0...20, step: 1) {
+                        Text(L10n.Settings.lockdownMinEpicLabel)
+                            .font(AppTheme.Fonts.ui(.body))
+                    }
+                    .tint(AppTheme.Colors.accentXP)
+
+                    Stepper(value: Binding(
+                        get: { profile.lockdownMinHardQuestsToClear },
+                        set: { newValue in
+                            profile.lockdownMinHardQuestsToClear = max(0, min(20, newValue))
+                            normalizeLockdownMinimums(profile)
+                            try? modelContext.save()
+                        }
+                    ), in: 0...20, step: 1) {
+                        Text(L10n.Settings.lockdownMinHardLabel)
+                            .font(AppTheme.Fonts.ui(.body))
+                    }
+                    .tint(AppTheme.Colors.accentXP)
+                }
+            } header: {
+                Text(L10n.Settings.lockdownSection)
+            } footer: {
+                Text(L10n.Settings.lockdownFooter)
+                    .font(AppTheme.Fonts.mono(.caption2))
             }
 
             #if DEBUG
@@ -136,5 +172,12 @@ struct SettingsView: View {
             draftDayOffset = gameClock.dayOffset
         }
         #endif
+    }
+
+    private func normalizeLockdownMinimums(_ profile: UserProfile) {
+        if profile.lockdownMinEpicQuestsToClear == 0 && profile.lockdownMinHardQuestsToClear == 0 {
+            profile.lockdownMinEpicQuestsToClear = 1
+            profile.lockdownMinHardQuestsToClear = 2
+        }
     }
 }
