@@ -2,11 +2,14 @@
 //  QuestLogView.swift
 //  UpSelf
 //
-//  Action center: filter dailies vs one-offs, swipe to complete.
+//  Action center: filter dailies vs one-offs; complete via swipe. If lockdown engages while this screen is visible, we pop back to the HUD.
 //
 
 import SwiftData
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 private enum QuestLogFilter: Hashable {
     case daily
@@ -30,23 +33,8 @@ struct QuestLogView: View {
 
     private var profile: UserProfile? { profiles.first }
 
-    private var filteredQuests: [Quest] {
-        guard let id = profile?.id else { return [] }
-        let subset = allQuests.filter { quest in
-            guard quest.user?.id == id else { return false }
-            switch filter {
-            case .daily: return quest.isDaily
-            case .oneOff: return !quest.isDaily
-            }
-        }
-        let ref = gameClock.now
-        return subset.sorted { a, b in
-            let ad = a.displayAsCompleted(referenceDate: ref)
-            let bd = b.displayAsCompleted(referenceDate: ref)
-            if ad != bd { return !ad && bd }
-            return a.title.localizedCaseInsensitiveCompare(b.title) == .orderedAscending
-        }
-    }
+    // Estado local que guarda la lista ya filtrada y ordenada.
+    @State private var visibleQuests: [Quest] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
@@ -57,7 +45,7 @@ struct QuestLogView: View {
             .pickerStyle(.segmented)
             .accessibilityLabel(L10n.QuestLog.filterAccessibility)
 
-            if filteredQuests.isEmpty {
+            if visibleQuests.isEmpty {
                 Text(L10n.QuestLog.empty)
                     .font(AppTheme.Fonts.ui(.subheadline))
                     .foregroundStyle(AppTheme.Colors.secondaryLabel)
@@ -65,7 +53,7 @@ struct QuestLogView: View {
                     .padding(.vertical, AppTheme.Spacing.lg)
             } else {
                 List {
-                    ForEach(filteredQuests, id: \.id) { quest in
+                    ForEach(visibleQuests, id: \.id) { quest in
                         questRow(quest)
                             .listRowInsets(EdgeInsets(
                                 top: AppTheme.Spacing.xs,
@@ -84,6 +72,23 @@ struct QuestLogView: View {
         .padding(AppTheme.Spacing.md)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(AppTheme.Colors.background)
+        .onAppear {
+            updateQuests() // Calcula cuando entras a la pantalla
+            if profile?.isInLockdown == true {
+                viewModel.onLockdownEngagedExit?()
+            }
+        }
+        .onChange(of: profile?.isInLockdown) { old, new in
+            if new == true, old != true {
+                viewModel.onLockdownEngagedExit?()
+            }
+        }
+        .onChange(of: allQuests) { _, _ in
+            updateQuests() // Recalcula si creas o completas una misión
+        }
+        .onChange(of: filter) { _, _ in
+            updateQuests() // Recalcula si cambias la pestaña (Diarias/Puntuales)
+        }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -103,22 +108,57 @@ struct QuestLogView: View {
         }
     }
 
+    private func completeQuestFromSwipe(_ quest: Quest) {
+        #if canImport(UIKit)
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        #endif
+        let q = quest
+        DispatchQueue.main.async {
+            viewModel.completePersistedQuest(q)
+        }
+    }
+
+    private func updateQuests() {
+        guard let id = profile?.id else { return }
+        let ref = gameClock.now // Tomamos la hora una sola vez
+        
+        // 1. Filtrar
+        let subset = allQuests.filter { quest in
+            // Al hacer esto aquí, obligamos a SwiftData a resolver el "Fault"
+            // antes de que el usuario interactúe.
+            guard quest.user?.id == id else { return false }
+            switch filter {
+            case .daily: return quest.isDaily
+            case .oneOff: return !quest.isDaily
+            }
+        }
+        
+        // 2. Ordenar y asignar al estado de la vista
+        visibleQuests = subset.sorted { a, b in
+            let ad = a.displayAsCompleted(referenceDate: ref)
+            let bd = b.displayAsCompleted(referenceDate: ref)
+            if ad != bd { return !ad && bd }
+            return a.title.localizedCaseInsensitiveCompare(b.title) == .orderedAscending
+        }
+    }
+
     @ViewBuilder
     private func questRow(_ quest: Quest) -> some View {
         let ref = gameClock.now
         let done = quest.displayAsCompleted(referenceDate: ref)
         let canComplete = quest.canComplete(referenceDate: ref)
-        let content = questRowContent(quest, done: done, canComplete: canComplete)
+        let content = QuestLogRowCard(
+            quest: quest,
+            done: done,
+            canComplete: canComplete,
+            tierBlockedInLockdown: false
+        )
 
         if canComplete {
             content
                 .swipeActions(edge: .leading, allowsFullSwipe: false) {
                     Button {
-                        let q = quest
-                        // Defer mutation until List/UIKit finishes swipe layout (avoids UICollectionView inconsistency).
-                        DispatchQueue.main.async {
-                            viewModel.completePersistedQuest(q)
-                        }
+                        completeQuestFromSwipe(quest)
                     } label: {
                         Label {
                             Text(L10n.HUD.questCompleteAction)
@@ -131,49 +171,5 @@ struct QuestLogView: View {
         } else {
             content
         }
-    }
-
-    private func questRowContent(_ quest: Quest, done: Bool, canComplete: Bool) -> some View {
-        HStack(alignment: .center, spacing: AppTheme.Spacing.md) {
-            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                Text(quest.title)
-                    .font(AppTheme.Fonts.ui(.subheadline))
-                    .fontWeight(.medium)
-                    .foregroundStyle(Color.white.opacity(0.92))
-                    .lineLimit(3)
-                if let kind = quest.statKind {
-                    Text(L10n.Stats.title(for: kind))
-                        .font(AppTheme.Fonts.mono(.caption))
-                        .foregroundStyle(AppTheme.Colors.secondaryLabel)
-                }
-            }
-            Spacer(minLength: AppTheme.Spacing.sm)
-
-            VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
-                if let tier = quest.rewardTier {
-                    Text(L10n.HUD.xpFormat(xp: tier.xp))
-                        .font(AppTheme.Fonts.mono(.subheadline))
-                        .foregroundStyle(AppTheme.Colors.accentXP)
-                }
-
-                if !canComplete, done {
-                    Text(quest.isDaily ? L10n.HUD.questDoneToday : L10n.HUD.questDoneOnce)
-                        .font(AppTheme.Fonts.mono(.caption2))
-                        .foregroundStyle(AppTheme.Colors.accentXP.opacity(0.9))
-                        .padding(.vertical, AppTheme.Spacing.xs)
-                }
-            }
-        }
-        .padding(AppTheme.Spacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            RoundedRectangle(cornerRadius: AppTheme.Radius.card)
-                .fill(AppTheme.Colors.card)
-        }
-        .overlay(
-            RoundedRectangle(cornerRadius: AppTheme.Radius.card)
-                .stroke(AppTheme.Colors.cardStroke, lineWidth: AppTheme.Stroke.cardLine)
-        )
-        .opacity(done ? 0.6 : 1)
     }
 }
