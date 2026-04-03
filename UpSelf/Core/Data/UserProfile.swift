@@ -18,7 +18,7 @@ final class UserProfile {
     var isInLockdown: Bool
 
     /// Start of the last **calendar day** fully processed for missed-daily HP checks (see `MissedDailyPenaltyService`).
-    /// `nil` = not set yet; first evaluation sets it to yesterday without back-dating.
+    /// `nil` = not set yet; first run seeds two days back so the next evaluation can process **yesterday** (no arbitrary backfill).
     var lastMissedDailyEvaluationDate: Date?
     
     @Relationship(deleteRule: .cascade) 

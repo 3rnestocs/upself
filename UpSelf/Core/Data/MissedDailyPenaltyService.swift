@@ -2,8 +2,8 @@
 //  MissedDailyPenaltyService.swift
 //  UpSelf
 //
-//  On each app activation, evaluates **past** calendar days (through yesterday) for daily quests
-//  not completed on their due day; applies HP loss and `ActivityLog` rows.
+//  On each app activation, evaluates **past** calendar days (through yesterday). If the **daily set**
+//  was not fully completed on a day, applies one HP loss for that day (not per quest).
 //
 
 import Foundation
@@ -11,46 +11,53 @@ import SwiftData
 
 enum MissedDailyPenaltyService {
 
-    /// HP removed per daily quest missed for one calendar day (tunable).
-    static let hpPerMissedDailyQuest = 10
+    /// HP removed when **any** daily remains incomplete for a past calendar day (once per day, not per quest).
+    static let hpPerIncompleteDailyDay = 20
 
     /// Run when the scene becomes active. Updates `lastAppOpen` and the missed-daily watermark.
+    /// - Returns: Total HP subtracted this run (for global UI); `0` if none.
     @MainActor
-    static func evaluateIfNeeded(context: ModelContext) throws {
+    @discardableResult
+    static func evaluateIfNeeded(context: ModelContext, clock: GameClock) throws -> Int {
         let calendar = Calendar.current
-        let now = Date()
+        let now = clock.now
         let todayStart = calendar.startOfDay(for: now)
-        guard let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: todayStart) else { return }
+        guard let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: todayStart) else { return 0 }
 
         var descriptor = FetchDescriptor<UserProfile>()
         descriptor.fetchLimit = 1
-        guard let profile = try context.fetch(descriptor).first else { return }
+        guard let profile = try context.fetch(descriptor).first else { return 0 }
 
+        // First install: do not back-penalize arbitrary history. Seed the watermark to **two days ago**
+        // so the next line’s `day = lastEval + 1` equals **yesterday** and the loop can run.
+        // (The old path set the watermark to *yesterday* and returned: then `day` became *today*, which is
+        // never `<= yesterday`, so **yesterday was never evaluated** — penalties never applied.)
         if profile.lastMissedDailyEvaluationDate == nil {
-            profile.lastMissedDailyEvaluationDate = yesterdayStart
+            guard let twoDaysAgoStart = calendar.date(byAdding: .day, value: -2, to: todayStart) else { return 0 }
+            profile.lastMissedDailyEvaluationDate = twoDaysAgoStart
             profile.lastAppOpen = now
             try context.save()
-            return
+            return 0
         }
 
+        var totalHPLostThisRun = 0
         var lastEval = calendar.startOfDay(for: profile.lastMissedDailyEvaluationDate!)
         var day = calendar.date(byAdding: .day, value: 1, to: lastEval)!
 
         while day <= yesterdayStart {
             let dailies = profile.quests.filter(\.isDaily)
-            for quest in dailies {
-                guard !isQuestCompleted(quest, on: day, calendar: calendar) else { continue }
-                let loss = min(hpPerMissedDailyQuest, profile.currentHP)
-                guard loss > 0 else { continue }
-
-                profile.currentHP -= loss
-                let dayLabel = day.formatted(date: .abbreviated, time: .omitted)
-                let message = L10n.ActivityLogCopy.missedDailyMessage(
-                    questTitle: quest.title,
-                    dayLabel: dayLabel,
-                    hp: loss
-                )
-                ActivityLogService.insertHPLoss(context: context, profile: profile, message: message)
+            if !dailies.isEmpty {
+                let allDailiesCompletedThatDay = dailies.allSatisfy { isQuestCompleted($0, on: day, calendar: calendar) }
+                if !allDailiesCompletedThatDay {
+                    let loss = min(hpPerIncompleteDailyDay, profile.currentHP)
+                    if loss > 0 {
+                        profile.currentHP -= loss
+                        totalHPLostThisRun += loss
+                        let dayLabel = day.formatted(date: .abbreviated, time: .omitted)
+                        let message = L10n.ActivityLogCopy.missedDailySetMessage(dayLabel: dayLabel, hp: loss)
+                        ActivityLogService.insertHPLoss(context: context, profile: profile, message: message)
+                    }
+                }
             }
             day = calendar.date(byAdding: .day, value: 1, to: day)!
         }
@@ -58,6 +65,7 @@ enum MissedDailyPenaltyService {
         profile.lastMissedDailyEvaluationDate = yesterdayStart
         profile.lastAppOpen = now
         try context.save()
+        return totalHPLostThisRun
     }
 
     private static func isQuestCompleted(_ quest: Quest, on dayStart: Date, calendar: Calendar) -> Bool {
@@ -65,3 +73,21 @@ enum MissedDailyPenaltyService {
         return calendar.isDate(completed, inSameDayAs: dayStart)
     }
 }
+
+#if DEBUG
+extension MissedDailyPenaltyService {
+    /// Resets the watermark to **two days before “game today”** so the **next** `evaluateIfNeeded` processes
+    /// **yesterday** for penalties (matches first-install seeding; simulation helper).
+    static func debugResetEvaluationWatermark(context: ModelContext, clock: GameClock) throws {
+        let calendar = Calendar.current
+        let todayStart = calendar.startOfDay(for: clock.now)
+        guard let twoDaysAgoStart = calendar.date(byAdding: .day, value: -2, to: todayStart) else { return }
+
+        var descriptor = FetchDescriptor<UserProfile>()
+        descriptor.fetchLimit = 1
+        guard let profile = try context.fetch(descriptor).first else { return }
+        profile.lastMissedDailyEvaluationDate = twoDaysAgoStart
+        try context.save()
+    }
+}
+#endif
