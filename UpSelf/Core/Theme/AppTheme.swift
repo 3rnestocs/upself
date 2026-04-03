@@ -110,6 +110,13 @@ enum AppTheme {
         static let xpHeight: CGFloat = 6
     }
 
+    /// Low-HP heartbeat on the HUD bar fill (HP ratio below `LockdownPolicy.heartbeatHPRatio`).
+    enum HPHeartbeat {
+        static let pulseDuration: Double = 1.15
+        static let fillMinOpacity: CGFloat = 0.55
+        static let fillMaxOpacity: CGFloat = 1.0
+    }
+
     enum Shadow {
         static let cardRadius: CGFloat = 8
         static let cardY: CGFloat = 2
