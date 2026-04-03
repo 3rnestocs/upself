@@ -90,3 +90,14 @@ extension DependencyContainer {
 private struct DataSeedServiceKey: InjectionKey {
     static var currentValue: DataSeedServiceProtocol = DataSeedService()
 }
+
+private struct GameClockKey: InjectionKey {
+    static var currentValue: GameClock = GameClock()
+}
+
+extension DependencyContainer {
+    var gameClock: GameClock {
+        get { DependencyContainer[GameClockKey.self] }
+        set { DependencyContainer[GameClockKey.self] = newValue }
+    }
+}
