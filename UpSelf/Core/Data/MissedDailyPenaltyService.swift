@@ -36,6 +36,7 @@ enum MissedDailyPenaltyService {
             guard let twoDaysAgoStart = calendar.date(byAdding: .day, value: -2, to: todayStart) else { return 0 }
             profile.lastMissedDailyEvaluationDate = twoDaysAgoStart
             profile.lastAppOpen = now
+            try LockdownEvaluationService.evaluate(context: context, now: now)
             try context.save()
             return 0
         }
@@ -64,6 +65,7 @@ enum MissedDailyPenaltyService {
 
         profile.lastMissedDailyEvaluationDate = yesterdayStart
         profile.lastAppOpen = now
+        try LockdownEvaluationService.evaluate(context: context, now: now)
         try context.save()
         return totalHPLostThisRun
     }
