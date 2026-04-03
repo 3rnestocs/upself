@@ -9,22 +9,58 @@ import SwiftData
 import SwiftUI
 import UIKit
 
-class AppCoordinator {
+class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControllerDelegate {
+
+    let tabBarController: UITabBarController
+    /// Home tab: dashboard, pushes, and sheets.
     let navigationController: UINavigationController
+
+    private let settingsNavigationController: UINavigationController
     private let modelContainer: ModelContainer
 
     private var dashboardViewModel: DashboardViewModel?
     private weak var createQuestHostingController: UIViewController?
 
-    init(
-        navigationController: UINavigationController = UINavigationController(),
-        modelContainer: ModelContainer
-    ) {
-        self.navigationController = navigationController
+    init(modelContainer: ModelContainer) {
+        let homeNav = UINavigationController()
+        let settingsNav = UINavigationController()
+        let tabs = UITabBarController()
+
+        self.navigationController = homeNav
+        self.settingsNavigationController = settingsNav
+        self.tabBarController = tabs
         self.modelContainer = modelContainer
+
+        super.init()
+
+        homeNav.delegate = self
+
+        homeNav.tabBarItem = UITabBarItem(
+            title: String(localized: L10n.Settings.tabHome),
+            image: UIImage(systemName: "house.fill"),
+            tag: 0
+        )
+        settingsNav.tabBarItem = UITabBarItem(
+            title: String(localized: L10n.Settings.tabSettings),
+            image: UIImage(systemName: "gearshape.fill"),
+            tag: 1
+        )
+
+        tabs.viewControllers = [homeNav, settingsNav]
+        tabs.tabBar.tintColor = UIColor(AppTheme.Colors.accentXP)
+
+        let tabAppearance = UITabBarAppearance()
+        tabAppearance.configureWithOpaqueBackground()
+        tabAppearance.backgroundColor = UIColor(AppTheme.Colors.card)
+        tabs.tabBar.standardAppearance = tabAppearance
+        tabs.tabBar.scrollEdgeAppearance = tabAppearance
+
+        tabs.delegate = self
     }
 
     func start() {
+        let clock = DependencyContainer[\.gameClock]
+
         let viewModel = DashboardViewModel()
         dashboardViewModel = viewModel
         viewModel.onPresentCreateQuest = { [weak self] in
@@ -36,16 +72,40 @@ class AppCoordinator {
         viewModel.onPresentQuestLog = { [weak self] in
             self?.pushQuestLog()
         }
+        viewModel.onPushRecoveryQuestList = { [weak self] in
+            self?.pushRecoveryQuestList()
+        }
 
-        let root = DashboardView(viewModel: viewModel)
+        let dashboardRoot = DashboardView(viewModel: viewModel)
             .modelContainer(modelContainer)
-        let initialVC = UIHostingController(rootView: root)
+            .environment(\.gameClock, clock)
+        let initialVC = UIHostingController(rootView: dashboardRoot)
         initialVC.view.backgroundColor = AppTheme.UIKitColors.background
 
-        navigationController.pushViewController(initialVC, animated: false)
+        navigationController.setViewControllers([initialVC], animated: false)
+
+        let settingsRoot = SettingsView()
+            .modelContainer(modelContainer)
+            .environment(\.gameClock, clock)
+        let settingsHosting = UIHostingController(rootView: settingsRoot)
+        settingsHosting.view.backgroundColor = AppTheme.UIKitColors.background
+
+        settingsNavigationController.setViewControllers([settingsHosting], animated: false)
     }
 
     func presentCreateQuest() {
+        var descriptor = FetchDescriptor<UserProfile>()
+        descriptor.fetchLimit = 1
+        do {
+            if let profile = try modelContainer.mainContext.fetch(descriptor).first,
+               !LockdownPolicy.allows(.createQuest, isInLockdown: profile.isInLockdown) {
+                presentLockdownBlocksCreateQuestAlert()
+                return
+            }
+        } catch {
+            assertionFailure("presentCreateQuest profile fetch: \(error)")
+        }
+
         let viewModel = CreateQuestViewModel(modelContext: modelContainer.mainContext) { [weak self] in
             self?.dismissCreateQuestIfPresented()
         }
@@ -93,17 +153,73 @@ class AppCoordinator {
         let hosting = UIHostingController(rootView: root)
         hosting.view.backgroundColor = AppTheme.UIKitColors.background
         hosting.navigationItem.title = String(localized: L10n.HistoryLog.title)
+        hosting.hidesBottomBarWhenPushed = true
         navigationController.pushViewController(hosting, animated: true)
     }
 
     func pushQuestLog() {
-        let viewModel = QuestLogViewModel(modelContext: modelContainer.mainContext)
+        let clock = DependencyContainer[\.gameClock]
+        let viewModel = QuestLogViewModel(modelContext: modelContainer.mainContext, gameClock: clock)
+        viewModel.onLockdownEngagedExit = { [weak self] in
+            self?.navigationController.popViewController(animated: true)
+        }
         let root = QuestLogView(viewModel: viewModel)
             .modelContainer(modelContainer)
+            .environment(\.gameClock, clock)
         let hosting = UIHostingController(rootView: root)
         hosting.view.backgroundColor = AppTheme.UIKitColors.background
         hosting.navigationItem.title = String(localized: L10n.QuestLog.title)
+        hosting.hidesBottomBarWhenPushed = true
         navigationController.pushViewController(hosting, animated: true)
+    }
+
+    func pushRecoveryQuestList() {
+        let clock = DependencyContainer[\.gameClock]
+        let viewModel = QuestLogViewModel(modelContext: modelContainer.mainContext, gameClock: clock)
+        viewModel.onLockdownClearedExit = { [weak self] in
+            self?.popRecoveryQuestListAndPresentExitSuccess()
+        }
+        let root = RecoveryQuestListView(viewModel: viewModel)
+            .modelContainer(modelContainer)
+            .environment(\.gameClock, clock)
+        let hosting = UIHostingController(rootView: root)
+        hosting.view.backgroundColor = AppTheme.UIKitColors.background
+        hosting.navigationItem.title = String(localized: L10n.Lockdown.recoverySheetTitle)
+        hosting.hidesBottomBarWhenPushed = true
+        navigationController.pushViewController(hosting, animated: true)
+    }
+
+    private func popRecoveryQuestListAndPresentExitSuccess() {
+        navigationController.popViewController(animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+            self?.presentLockdownExitSuccessAlert()
+        }
+    }
+
+    private func presentLockdownExitSuccessAlert() {
+        let title = String(localized: L10n.Lockdown.exitSuccessTitle)
+        let message = String(localized: L10n.Lockdown.exitSuccessMessage)
+        let acceptTitle = String(localized: L10n.Common.ok)
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: acceptTitle, style: .default))
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            let host = Self.topMostViewController(from: self.tabBarController)
+            host.present(alert, animated: true)
+        }
+    }
+
+    private func presentLockdownBlocksCreateQuestAlert() {
+        let title = String(localized: L10n.Lockdown.createQuestBlockedTitle)
+        let message = String(localized: L10n.Lockdown.createQuestBlockedBody)
+        let acceptTitle = String(localized: L10n.Common.ok)
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: acceptTitle, style: .default))
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            let host = Self.topMostViewController(from: self.tabBarController)
+            host.present(alert, animated: true)
+        }
     }
 
     private func dismissCreateQuestIfPresented() {
@@ -112,17 +228,81 @@ class AppCoordinator {
             self?.createQuestHostingController = nil
         }
     }
+
+    /// Presents a system alert above any pushed screen or modal (`UIAlertController` on the topmost VC).
+    func presentMissedDailyHPLossAlert(totalHPLost: Int) {
+        guard totalHPLost > 0 else { return }
+        let title = String(localized: L10n.HUD.hpLossAlertTitle)
+        let message = L10n.HUD.hpLossAlertMessage(totalLost: totalHPLost)
+        let acceptTitle = String(localized: L10n.HUD.hpLossAlertAccept)
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: acceptTitle, style: .default) { [weak self] _ in
+            self?.navigateToDashboardForHPLossReview()
+        })
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            let host = Self.topMostViewController(from: self.tabBarController)
+            host.present(alert, animated: true)
+        }
+    }
+
+    /// Home tab, dashboard root; dismisses a presented sheet on the home stack if needed so the HUD is visible.
+    func navigateToDashboardForHPLossReview() {
+        tabBarController.selectedIndex = 0
+        if let presented = navigationController.presentedViewController {
+            presented.dismiss(animated: true) { [weak self] in
+                if presented === self?.createQuestHostingController {
+                    self?.createQuestHostingController = nil
+                }
+                self?.navigationController.popToRootViewController(animated: true)
+            }
+        } else {
+            navigationController.popToRootViewController(animated: true)
+        }
+    }
+
+    private static func topMostViewController(from root: UIViewController) -> UIViewController {
+        if let presented = root.presentedViewController {
+            return topMostViewController(from: presented)
+        }
+        if let nav = root as? UINavigationController, let visible = nav.visibleViewController {
+            return topMostViewController(from: visible)
+        }
+        if let tab = root as? UITabBarController, let selected = tab.selectedViewController {
+            return topMostViewController(from: selected)
+        }
+        return root
+    }
+
+    // MARK: - UINavigationControllerDelegate
+
+    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        guard navigationController === self.navigationController else { return }
+        let isDashboardRoot = navigationController.viewControllers.first === viewController
+        navigationController.setNavigationBarHidden(isDashboardRoot, animated: animated)
+    }
+
+    // MARK: - UITabBarControllerDelegate
+
+    /// When opening **Settings**, pop the **home** stack so a pushed screen (e.g. activity log) isn’t left
+    /// under an inactive tab. Do **not** pop the settings stack when returning home — doing that during the
+    /// tab transition races with `UIHostingController` + SwiftUI (`@Observable` / game clock) and can crash.
+    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+        guard viewController === settingsNavigationController else { return }
+        guard navigationController.viewControllers.count > 1 else { return }
+        DispatchQueue.main.async { [weak self] in
+            self?.navigationController.popToRootViewController(animated: false)
+        }
+    }
 }
 
 struct CoordinatorView: UIViewControllerRepresentable {
     let coordinator: AppCoordinator
-    
-    // SwiftUI llama a este método una vez para crear el controlador de UIKit
-    func makeUIViewController(context: Context) -> UINavigationController {
-        coordinator.start() // Arrancamos el flujo
-        return coordinator.navigationController // Le entregamos el control a SwiftUI
+
+    func makeUIViewController(context: Context) -> UITabBarController {
+        coordinator.start()
+        return coordinator.tabBarController
     }
-    
-    // Este método es obligatorio, pero lo dejamos vacío porque nuestro Coordinator gestiona las actualizaciones
-    func updateUIViewController(_ uiViewController: UINavigationController, context: Context) {}
+
+    func updateUIViewController(_ uiViewController: UITabBarController, context: Context) {}
 }

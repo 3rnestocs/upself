@@ -40,7 +40,13 @@ private struct AppRootView: View {
                 guard phase == .active else { return }
                 let context = ModelContext(DependencyContainer[\.modelContainer])
                 do {
-                    try MissedDailyPenaltyService.evaluateIfNeeded(context: context)
+                    let lost = try MissedDailyPenaltyService.evaluateIfNeeded(
+                        context: context,
+                        clock: DependencyContainer[\.gameClock]
+                    )
+                    if lost > 0 {
+                        coordinator.presentMissedDailyHPLossAlert(totalHPLost: lost)
+                    }
                 } catch {
                     assertionFailure("MissedDailyPenaltyService: \(error)")
                 }

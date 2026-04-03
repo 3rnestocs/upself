@@ -17,6 +17,110 @@ enum L10n {
 
     enum Common {
         static let placeholder = LocalizedStringResource("common.placeholder")
+        static let ok = LocalizedStringResource("common.ok")
+        static let done = LocalizedStringResource("common.done")
+        static let cancel = LocalizedStringResource("common.cancel")
+    }
+
+    enum Lockdown {
+        static let exitSuccessTitle = LocalizedStringResource("lockdown.exit_success.title")
+        static let exitSuccessMessage = LocalizedStringResource("lockdown.exit_success.message")
+        static let dailyBriefBlockedFootnote = LocalizedStringResource("lockdown.daily_brief.blocked_footnote")
+        static let recoveryTitle = LocalizedStringResource("lockdown.recovery.title")
+        static let recoveryViewQuestsButton = LocalizedStringResource("lockdown.recovery.view_quests")
+        static let recoverySheetTitle = LocalizedStringResource("lockdown.recovery.sheet_title")
+        static let recoveryEmpty = LocalizedStringResource("lockdown.recovery.empty")
+
+        static func recoverySectionEpicHeader(done: Int, needed: Int) -> String {
+            String(
+                format: String(localized: "lockdown.recovery.section.epic_progress %lld %lld"),
+                locale: .current,
+                arguments: [done, needed] as [CVarArg]
+            )
+        }
+
+        static func recoverySectionHardHeader(done: Int, needed: Int) -> String {
+            String(
+                format: String(localized: "lockdown.recovery.section.hard_progress %lld %lld"),
+                locale: .current,
+                arguments: [done, needed] as [CVarArg]
+            )
+        }
+        static let recoveryCompleteConfirmTitle = LocalizedStringResource("lockdown.recovery.complete_confirm.title")
+        static let recoveryCompleteConfirmAction = LocalizedStringResource("lockdown.recovery.complete_confirm.confirm")
+
+        static func recoveryCompleteConfirmMessage(questTitle: String) -> String {
+            String(
+                format: String(localized: "lockdown.recovery.complete_confirm.body %@"),
+                locale: .current,
+                arguments: [questTitle] as [CVarArg]
+            )
+        }
+
+        static let cannotCompleteEasyRegularTitle = LocalizedStringResource("lockdown.quest.blocked_title")
+        static let cannotCompleteEasyRegularBody = LocalizedStringResource("lockdown.quest.blocked_body")
+        static let questRowLockedLabel = LocalizedStringResource("lockdown.quest.row_locked")
+        static let createQuestBlockedTitle = LocalizedStringResource("lockdown.create_quest.blocked_title")
+        static let createQuestBlockedBody = LocalizedStringResource("lockdown.create_quest.blocked_body")
+        static let recoveryProgressLine = LocalizedStringResource("lockdown.recovery.progress_line")
+        static let recoveryInfoAlertTitle = LocalizedStringResource("lockdown.recovery.info_alert.title")
+        static let recoveryInfoButtonAccessibility = LocalizedStringResource("lockdown.recovery.info_button.accessibility")
+
+        static func recoveryInfoAlertMessage(minHard: Int, minEpic: Int) -> String {
+            func hardRequirementPhrase(_ count: Int) -> String {
+                if count == 1 {
+                    return String(
+                        format: String(localized: "lockdown.recovery.info_alert.hard.singular %lld"),
+                        locale: .current,
+                        arguments: [count] as [CVarArg]
+                    )
+                }
+                return String(
+                    format: String(localized: "lockdown.recovery.info_alert.hard.plural %lld"),
+                    locale: .current,
+                    arguments: [count] as [CVarArg]
+                )
+            }
+            func epicRequirementPhrase(_ count: Int) -> String {
+                if count == 1 {
+                    return String(
+                        format: String(localized: "lockdown.recovery.info_alert.epic.singular %lld"),
+                        locale: .current,
+                        arguments: [count] as [CVarArg]
+                    )
+                }
+                return String(
+                    format: String(localized: "lockdown.recovery.info_alert.epic.plural %lld"),
+                    locale: .current,
+                    arguments: [count] as [CVarArg]
+                )
+            }
+
+            let hardActive = minHard > 0
+            let epicActive = minEpic > 0
+            if hardActive && epicActive {
+                return String(
+                    format: String(localized: "lockdown.recovery.info_alert.body_both"),
+                    locale: .current,
+                    arguments: [hardRequirementPhrase(minHard), epicRequirementPhrase(minEpic)] as [CVarArg]
+                )
+            }
+            if hardActive {
+                return String(
+                    format: String(localized: "lockdown.recovery.info_alert.body_hard_only %@"),
+                    locale: .current,
+                    arguments: [hardRequirementPhrase(minHard)] as [CVarArg]
+                )
+            }
+            if epicActive {
+                return String(
+                    format: String(localized: "lockdown.recovery.info_alert.body_epic_only %@"),
+                    locale: .current,
+                    arguments: [epicRequirementPhrase(minEpic)] as [CVarArg]
+                )
+            }
+            return String(localized: "lockdown.recovery.info_alert.body_fallback")
+        }
     }
 
     enum HUD {
@@ -36,6 +140,16 @@ enum L10n {
         static let statsInfoTitle = LocalizedStringResource("hud.stats_info.title")
         static let statsInfoDone = LocalizedStringResource("hud.stats_info.done")
         static let statsInfoButtonAccessibility = LocalizedStringResource("hud.stats_info.button_accessibility")
+        static let hpLossAlertTitle = LocalizedStringResource("hud.hp_loss_alert.title")
+        static let hpLossAlertAccept = LocalizedStringResource("hud.hp_loss_alert.accept")
+
+        static func hpLossAlertMessage(totalLost: Int) -> String {
+            String(
+                format: String(localized: "hud.hp_loss_alert.message %lld"),
+                locale: .current,
+                arguments: [totalLost as CVarArg]
+            )
+        }
 
         static func hpPair(current: Int, max: Int) -> String {
             String(localized: "hp.pair \(current) \(max)")
@@ -65,6 +179,41 @@ enum L10n {
         static let filterAccessibility = LocalizedStringResource("quest_log.filter.accessibility")
         static let empty = LocalizedStringResource("quest_log.empty")
         static let dashboardOneOffTeaser = LocalizedStringResource("quest_log.dashboard.one_off_teaser")
+        static let instructionsTitle = LocalizedStringResource("quest_log.instructions.title")
+        static let instructionsBody = LocalizedStringResource("quest_log.instructions.body")
+        static let instructionsButtonAccessibility = LocalizedStringResource("quest_log.instructions.button_accessibility")
+    }
+
+    enum Settings {
+        static let title = LocalizedStringResource("settings.title")
+        static let tabHome = LocalizedStringResource("settings.tab.home")
+        static let tabSettings = LocalizedStringResource("settings.tab.settings")
+        static let aboutSection = LocalizedStringResource("settings.about.section")
+        static let appNameLabel = LocalizedStringResource("settings.about.app_name")
+        static let versionLabel = LocalizedStringResource("settings.about.version")
+        static let developerSection = LocalizedStringResource("settings.developer.section")
+        static let gameClockLabel = LocalizedStringResource("settings.developer.game_clock")
+        static let gameClockFooter = LocalizedStringResource("settings.developer.footer")
+        static let resetWatermark = LocalizedStringResource("settings.developer.reset_watermark")
+        static let applyGameDay = LocalizedStringResource("settings.developer.apply")
+        static let useRealToday = LocalizedStringResource("settings.developer.use_real_today")
+        static let effectiveGameDay = LocalizedStringResource("settings.developer.effective_day")
+        static let draftPending = LocalizedStringResource("settings.developer.draft_pending")
+        static let watermarkResetDone = LocalizedStringResource("settings.developer.watermark_done")
+        static let watermarkResetFailed = LocalizedStringResource("settings.developer.watermark_failed")
+
+        static func gameClockOffsetDescription(_ offset: Int) -> String {
+            String(
+                format: String(localized: "settings.developer.offset %lld"),
+                locale: .current,
+                arguments: [offset as CVarArg]
+            )
+        }
+
+        static let lockdownSection = LocalizedStringResource("settings.lockdown.section")
+        static let lockdownMinEpicLabel = LocalizedStringResource("settings.lockdown.min_epic")
+        static let lockdownMinHardLabel = LocalizedStringResource("settings.lockdown.min_hard")
+        static let lockdownFooter = LocalizedStringResource("settings.lockdown.footer")
     }
 
     enum Stats {
@@ -209,11 +358,12 @@ enum L10n {
             return head + "\n" + statName
         }
 
-        static func missedDailyMessage(questTitle: String, dayLabel: String, hp: Int) -> String {
+        /// HP loss when the full daily set was not completed on a calendar day (one line for activity log).
+        static func missedDailySetMessage(dayLabel: String, hp: Int) -> String {
             String(
-                format: String(localized: "activity_log.hp.missed_daily"),
+                format: String(localized: "activity_log.hp.missed_daily_set"),
                 locale: .current,
-                arguments: [hp as CVarArg, questTitle as CVarArg, dayLabel as CVarArg]
+                arguments: [hp as CVarArg, dayLabel as CVarArg]
             )
         }
     }

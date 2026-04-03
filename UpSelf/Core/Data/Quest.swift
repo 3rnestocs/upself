@@ -61,4 +61,35 @@ final class Quest {
         }
         return lastCompleted == nil
     }
+
+    // MARK: - Lockdown recovery list
+
+    /// “Done” for the recovery list: same as `displayAsCompleted`, but only if `lastCompleted` is **on or after** the lockdown episode start.
+    func recoveryListDisplayCompleted(referenceDate: Date, lockdownEpisodeStart: Date?, calendar: Calendar = .current) -> Bool {
+        guard let start = lockdownEpisodeStart else {
+            return displayAsCompleted(referenceDate: referenceDate, calendar: calendar)
+        }
+        guard displayAsCompleted(referenceDate: referenceDate, calendar: calendar) else { return false }
+        guard let completed = lastCompleted else { return false }
+        return completed >= start
+    }
+
+    /// Whether this hard/epic quest can be completed for recovery (ignores a same-day completion that happened before the episode started).
+    func recoveryListCanComplete(referenceDate: Date, lockdownEpisodeStart: Date?, calendar: Calendar = .current) -> Bool {
+        guard let start = lockdownEpisodeStart else {
+            return canComplete(referenceDate: referenceDate, calendar: calendar)
+        }
+        guard rewardTier == .hard || rewardTier == .epic else {
+            return canComplete(referenceDate: referenceDate, calendar: calendar)
+        }
+        if isDaily {
+            guard let completed = lastCompleted else { return true }
+            if calendar.isDate(completed, inSameDayAs: referenceDate) {
+                return completed < start
+            }
+            return true
+        }
+        guard let completed = lastCompleted else { return true }
+        return completed < start
+    }
 }

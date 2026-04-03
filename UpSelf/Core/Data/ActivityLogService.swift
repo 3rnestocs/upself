@@ -10,11 +10,15 @@ import SwiftData
 
 enum ActivityLogService {
 
+    private static var eventTimestamp: Date {
+        DependencyContainer[\.gameClock].now
+    }
+
     /// Records an XP grant after attribute selection; no `save()` — caller saves once.
     static func insertXPGain(context: ModelContext, stat: CharacterStat, tier: QuestRewardTier) {
         guard let attribute = stat.kind, let profile = stat.user else { return }
         let message = L10n.ActivityLogCopy.xpGainMessage(xp: tier.xp, attribute: attribute)
-        let log = ActivityLog(message: message, kind: .xpGain, user: profile)
+        let log = ActivityLog(timestamp: eventTimestamp, message: message, kind: .xpGain, user: profile)
         context.insert(log)
     }
 
@@ -26,12 +30,12 @@ enum ActivityLogService {
             questTitle: questTitle,
             attribute: attribute
         )
-        let log = ActivityLog(message: message, kind: .xpGain, user: profile)
+        let log = ActivityLog(timestamp: eventTimestamp, message: message, kind: .xpGain, user: profile)
         context.insert(log)
     }
 
     static func insertHPLoss(context: ModelContext, profile: UserProfile, message: String) {
-        let log = ActivityLog(message: message, kind: .hpLoss, user: profile)
+        let log = ActivityLog(timestamp: eventTimestamp, message: message, kind: .hpLoss, user: profile)
         context.insert(log)
     }
 }

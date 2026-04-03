@@ -20,6 +20,9 @@ final class DashboardViewModel {
     /// Set by `AppCoordinator` to push the quest log screen.
     var onPresentQuestLog: (() -> Void)?
 
+    /// Set by `AppCoordinator` to push the lockdown recovery (hard/epic) list.
+    var onPushRecoveryQuestList: (() -> Void)?
+
     init() {}
 
     func presentCreateQuest() {
@@ -32,5 +35,9 @@ final class DashboardViewModel {
 
     func presentQuestLog() {
         onPresentQuestLog?()
+    }
+
+    func pushRecoveryQuestList() {
+        onPushRecoveryQuestList?()
     }
 }
