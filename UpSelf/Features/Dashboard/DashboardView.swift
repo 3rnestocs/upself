@@ -15,6 +15,7 @@ struct DashboardView: View {
 
     @Bindable private var gameClock = DependencyContainer[\.gameClock]
     @State private var showStatsInfo = false
+    @State private var showLockdownRecoveryInfo = false
 
     private let viewModel: DashboardViewModel
 
@@ -59,6 +60,9 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
                 header
                 hpSection
+                if profile?.isInLockdown == true {
+                    recoveryLockdownBanner
+                }
                 statsSection
                 if !quests.isEmpty {
                     questLogEntryCard
@@ -74,6 +78,14 @@ struct DashboardView: View {
         .background(AppTheme.Colors.background.ignoresSafeArea())
         .sheet(isPresented: $showStatsInfo) {
             StatsInfoSheet()
+        }
+        .alert(String(localized: L10n.Lockdown.recoveryInfoAlertTitle), isPresented: $showLockdownRecoveryInfo) {
+            Button(String(localized: L10n.Common.ok), role: .cancel) {}
+        } message: {
+            Text(verbatim: L10n.Lockdown.recoveryInfoAlertMessage(
+                minHard: profile?.lockdownMinHardQuestsToClear ?? 0,
+                minEpic: profile?.lockdownMinEpicQuestsToClear ?? 0
+            ))
         }
     }
 
@@ -102,51 +114,126 @@ struct DashboardView: View {
                     .foregroundStyle(AppTheme.Colors.accentXP, AppTheme.Colors.card)
             }
             .buttonStyle(.plain)
+            .disabled(!createQuestAllowed)
+            .opacity(createQuestAllowed ? 1 : 0.35)
             .accessibilityLabel(L10n.HUD.addQuest)
         }
     }
 
+    private var createQuestAllowed: Bool {
+        guard let profile else { return true }
+        return LockdownPolicy.allows(.createQuest, isInLockdown: profile.isInLockdown)
+    }
+
+    private var dailyBriefNavAllowed: Bool {
+        guard let profile else { return true }
+        return LockdownPolicy.allows(.dailyBrief, isInLockdown: profile.isInLockdown)
+    }
+
     private var questLogEntryCard: some View {
-        Button {
-            viewModel.presentQuestLog()
-        } label: {
-            HStack(alignment: .center, spacing: AppTheme.Spacing.md) {
-                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
-                    if hasOneOffQuestsOnly {
-                        Text(L10n.QuestLog.title)
-                            .font(AppTheme.Fonts.ui(.headline))
-                            .foregroundStyle(AppTheme.Colors.secondaryLabel)
-                        Text(L10n.QuestLog.dashboardOneOffTeaser)
-                            .font(AppTheme.Fonts.mono(.subheadline))
-                            .foregroundStyle(AppTheme.Colors.accentXP)
-                    } else {
-                        Text(L10n.HUD.dailyBriefingTitle)
-                            .font(AppTheme.Fonts.ui(.headline))
-                            .foregroundStyle(AppTheme.Colors.secondaryLabel)
-                        Text(L10n.HUD.dailyBriefingSummary(completed: completedDailiesToday, total: dailyQuests.count))
-                            .font(AppTheme.Fonts.mono(.subheadline))
-                            .foregroundStyle(AppTheme.Colors.accentXP)
-                    }
+        Group {
+            if dailyBriefNavAllowed {
+                Button {
+                    viewModel.presentQuestLog()
+                } label: {
+                    questLogEntryCardContent(showChevron: true)
                 }
-                Spacer(minLength: AppTheme.Spacing.sm)
+                .buttonStyle(.plain)
+            } else {
+                questLogEntryCardContent(showChevron: false)
+                    .opacity(0.85)
+            }
+        }
+        .accessibilityLabel(L10n.HUD.openQuestLog)
+    }
+
+    private func questLogEntryCardContent(showChevron: Bool) -> some View {
+        HStack(alignment: .center, spacing: AppTheme.Spacing.md) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                if hasOneOffQuestsOnly {
+                    Text(L10n.QuestLog.title)
+                        .font(AppTheme.Fonts.ui(.headline))
+                        .foregroundStyle(AppTheme.Colors.secondaryLabel)
+                    Text(L10n.QuestLog.dashboardOneOffTeaser)
+                        .font(AppTheme.Fonts.mono(.subheadline))
+                        .foregroundStyle(AppTheme.Colors.accentXP)
+                } else {
+                    Text(L10n.HUD.dailyBriefingTitle)
+                        .font(AppTheme.Fonts.ui(.headline))
+                        .foregroundStyle(AppTheme.Colors.secondaryLabel)
+                    Text(L10n.HUD.dailyBriefingSummary(completed: completedDailiesToday, total: dailyQuests.count))
+                        .font(AppTheme.Fonts.mono(.subheadline))
+                        .foregroundStyle(AppTheme.Colors.accentXP)
+                }
+                if !dailyBriefNavAllowed {
+                    Text(L10n.Lockdown.dailyBriefBlockedFootnote)
+                        .font(AppTheme.Fonts.mono(.caption))
+                        .foregroundStyle(AppTheme.Colors.secondaryLabel)
+                        .padding(.top, AppTheme.Spacing.xs)
+                }
+            }
+            Spacer(minLength: AppTheme.Spacing.sm)
+            if showChevron {
                 Image(systemName: "chevron.right")
                     .font(AppTheme.Fonts.ui(.body))
                     .fontWeight(.semibold)
                     .foregroundStyle(AppTheme.Colors.secondaryLabel)
             }
-            .padding(AppTheme.Spacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background {
-                RoundedRectangle(cornerRadius: AppTheme.Radius.card)
-                    .fill(AppTheme.Colors.card)
-            }
-            .overlay(
-                RoundedRectangle(cornerRadius: AppTheme.Radius.card)
-                    .stroke(AppTheme.Colors.cardStroke, lineWidth: AppTheme.Stroke.cardLine)
-            )
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(L10n.HUD.openQuestLog)
+        .padding(AppTheme.Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: AppTheme.Radius.card)
+                .fill(AppTheme.Colors.card)
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.Radius.card)
+                .stroke(AppTheme.Colors.cardStroke, lineWidth: AppTheme.Stroke.cardLine)
+        )
+    }
+
+    private var recoveryLockdownBanner: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(L10n.Lockdown.recoveryTitle)
+                    .font(AppTheme.Fonts.ui(.headline))
+                    .foregroundStyle(AppTheme.Colors.accentXP)
+                Spacer(minLength: AppTheme.Spacing.sm)
+                Button {
+                    showLockdownRecoveryInfo = true
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(AppTheme.Fonts.ui(.headline))
+                        .foregroundStyle(AppTheme.Colors.accentXP)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(L10n.Lockdown.recoveryInfoButtonAccessibility)
+            }
+            Text(L10n.Lockdown.recoveryProgressLine)
+                .font(AppTheme.Fonts.mono(.subheadline))
+                .foregroundStyle(AppTheme.Colors.secondaryLabel)
+            Button {
+                viewModel.pushRecoveryQuestList()
+            } label: {
+                Text(L10n.Lockdown.recoveryViewQuestsButton)
+                    .font(AppTheme.Fonts.ui(.body))
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, AppTheme.Spacing.sm)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(AppTheme.Colors.accentXP)
+        }
+        .padding(AppTheme.Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: AppTheme.Radius.card)
+                .fill(AppTheme.Colors.card)
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.Radius.card)
+                .stroke(AppTheme.Colors.accentXP.opacity(0.45), lineWidth: AppTheme.Stroke.cardLine * 2)
+        )
     }
 
     private var hpSection: some View {
@@ -176,18 +263,38 @@ struct DashboardView: View {
             let current = profile?.currentHP ?? 0
             let ratio = min(1, max(0, CGFloat(current) / CGFloat(maxHP)))
             let width = geo.size.width * ratio
+            let shouldHeartbeat = Double(ratio) < LockdownPolicy.heartbeatHPRatio
 
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: AppTheme.Radius.bar)
                     .fill(AppTheme.Colors.card)
-                RoundedRectangle(cornerRadius: AppTheme.Radius.bar)
-                    .fill(LinearGradient(
-                        colors: [AppTheme.Colors.accentXP, hpFillEnd(ratio: ratio)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    ))
-                    .frame(width: max(width, ratio > 0 ? 4 : 0))
-                    .animation(.easeInOut(duration: 0.25), value: ratio)
+                Group {
+                    if shouldHeartbeat {
+                        TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !shouldHeartbeat)) { timeline in
+                            let t = timeline.date.timeIntervalSince1970
+                            let wave = (sin(t * 2 * .pi / AppTheme.HPHeartbeat.pulseDuration) + 1) / 2
+                            let o = AppTheme.HPHeartbeat.fillMinOpacity
+                                + (AppTheme.HPHeartbeat.fillMaxOpacity - AppTheme.HPHeartbeat.fillMinOpacity) * CGFloat(wave)
+                            RoundedRectangle(cornerRadius: AppTheme.Radius.bar)
+                                .fill(LinearGradient(
+                                    colors: [AppTheme.Colors.accentXP, hpFillEnd(ratio: ratio)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                ))
+                                .frame(width: max(width, ratio > 0 ? 4 : 0))
+                                .opacity(o)
+                        }
+                    } else {
+                        RoundedRectangle(cornerRadius: AppTheme.Radius.bar)
+                            .fill(LinearGradient(
+                                colors: [AppTheme.Colors.accentXP, hpFillEnd(ratio: ratio)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ))
+                            .frame(width: max(width, ratio > 0 ? 4 : 0))
+                    }
+                }
+                .animation(.easeInOut(duration: 0.25), value: ratio)
             }
         }
         .frame(height: AppTheme.Bar.hpHeight)
