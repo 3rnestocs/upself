@@ -17,6 +17,7 @@ enum L10n {
 
     enum Common {
         static let placeholder = LocalizedStringResource("common.placeholder")
+        static let ok = LocalizedStringResource("common.ok")
     }
 
     enum HUD {
@@ -36,6 +37,16 @@ enum L10n {
         static let statsInfoTitle = LocalizedStringResource("hud.stats_info.title")
         static let statsInfoDone = LocalizedStringResource("hud.stats_info.done")
         static let statsInfoButtonAccessibility = LocalizedStringResource("hud.stats_info.button_accessibility")
+        static let hpLossAlertTitle = LocalizedStringResource("hud.hp_loss_alert.title")
+        static let hpLossAlertAccept = LocalizedStringResource("hud.hp_loss_alert.accept")
+
+        static func hpLossAlertMessage(totalLost: Int) -> String {
+            String(
+                format: String(localized: "hud.hp_loss_alert.message %lld"),
+                locale: .current,
+                arguments: [totalLost as CVarArg]
+            )
+        }
 
         static func hpPair(current: Int, max: Int) -> String {
             String(localized: "hp.pair \(current) \(max)")
@@ -65,6 +76,36 @@ enum L10n {
         static let filterAccessibility = LocalizedStringResource("quest_log.filter.accessibility")
         static let empty = LocalizedStringResource("quest_log.empty")
         static let dashboardOneOffTeaser = LocalizedStringResource("quest_log.dashboard.one_off_teaser")
+        static let instructionsTitle = LocalizedStringResource("quest_log.instructions.title")
+        static let instructionsBody = LocalizedStringResource("quest_log.instructions.body")
+        static let instructionsButtonAccessibility = LocalizedStringResource("quest_log.instructions.button_accessibility")
+    }
+
+    enum Settings {
+        static let title = LocalizedStringResource("settings.title")
+        static let tabHome = LocalizedStringResource("settings.tab.home")
+        static let tabSettings = LocalizedStringResource("settings.tab.settings")
+        static let aboutSection = LocalizedStringResource("settings.about.section")
+        static let appNameLabel = LocalizedStringResource("settings.about.app_name")
+        static let versionLabel = LocalizedStringResource("settings.about.version")
+        static let developerSection = LocalizedStringResource("settings.developer.section")
+        static let gameClockLabel = LocalizedStringResource("settings.developer.game_clock")
+        static let gameClockFooter = LocalizedStringResource("settings.developer.footer")
+        static let resetWatermark = LocalizedStringResource("settings.developer.reset_watermark")
+        static let applyGameDay = LocalizedStringResource("settings.developer.apply")
+        static let useRealToday = LocalizedStringResource("settings.developer.use_real_today")
+        static let effectiveGameDay = LocalizedStringResource("settings.developer.effective_day")
+        static let draftPending = LocalizedStringResource("settings.developer.draft_pending")
+        static let watermarkResetDone = LocalizedStringResource("settings.developer.watermark_done")
+        static let watermarkResetFailed = LocalizedStringResource("settings.developer.watermark_failed")
+
+        static func gameClockOffsetDescription(_ offset: Int) -> String {
+            String(
+                format: String(localized: "settings.developer.offset %lld"),
+                locale: .current,
+                arguments: [offset as CVarArg]
+            )
+        }
     }
 
     enum Stats {
@@ -209,11 +250,12 @@ enum L10n {
             return head + "\n" + statName
         }
 
-        static func missedDailyMessage(questTitle: String, dayLabel: String, hp: Int) -> String {
+        /// HP loss when the full daily set was not completed on a calendar day (one line for activity log).
+        static func missedDailySetMessage(dayLabel: String, hp: Int) -> String {
             String(
-                format: String(localized: "activity_log.hp.missed_daily"),
+                format: String(localized: "activity_log.hp.missed_daily_set"),
                 locale: .current,
-                arguments: [hp as CVarArg, questTitle as CVarArg, dayLabel as CVarArg]
+                arguments: [hp as CVarArg, dayLabel as CVarArg]
             )
         }
     }
