@@ -877,13 +877,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Swipe right on a quest row to reveal the complete action."
+            "value" : "Swipe right on a quest row to reveal Complete and apply XP. Use Daily vs One-off to find the quest you want."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Desliza hacia la derecha en una misión para mostrar la acción de completar."
+            "value" : "Desliza hacia la derecha en una misión para mostrar Completar y aplicar XP. Usa Diarias o Puntuales para encontrar la misión que buscas."
           }
         }
       }
@@ -916,6 +916,54 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Completar misiones"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.complete_confirm.body %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Be honest with yourself. Did you really complete the quest %@? Looking for shortcuts or cheating won't get you far in life."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sé honesto contigo. ¿Completaste de verdad la misión %@? Buscar atajos o hacer trampas no te llevará lejos en la vida."
+          }
+        }
+      }
+    },
+    "lockdown.recovery.complete_confirm.confirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yes, I completed it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sí, la completé"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.complete_confirm.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not so fast, cowboy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No tan rápido, vaquero"
           }
         }
       }
@@ -1796,6 +1844,502 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disciplina y control de impulsos: resistir distracciones, crear hábitos y poner límites al confort y a las pantallas."
+          }
+        }
+      }
+    },
+    "common.done" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listo"
+          }
+        }
+      }
+    },
+    "common.cancel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        }
+      }
+    },
+    "lockdown.create_quest.blocked_body" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finish hard or epic quests from your log to clear lockdown. Creating new quests is disabled until then."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completa misiones difíciles o épicas en el registro para salir del confinamiento. Crear misiones nuevas está desactivado hasta entonces."
+          }
+        }
+      }
+    },
+    "lockdown.create_quest.blocked_title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lockdown active"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confinamiento activo"
+          }
+        }
+      }
+    },
+    "lockdown.daily_brief.blocked_footnote" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete hard or epic recovery quests from the banner below to exit lockdown."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completa misiones difíciles o épicas de recuperación desde el banner inferior para salir del confinamiento."
+          }
+        }
+      }
+    },
+    "lockdown.exit_success.message" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You left lockdown successfully and your HP is fully restored. Keep an eye on your daily quests so you stay on track."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saliste del confinamiento con éxito y tu vida se restauró por completo. No pierdas de vista tus misiones diarias para mantenerte al día."
+          }
+        }
+      }
+    },
+    "lockdown.exit_success.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lockdown cleared"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confinamiento superado"
+          }
+        }
+      }
+    },
+    "lockdown.quest.blocked_body" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "While in lockdown, only hard and epic quests can be completed. Use the recovery list on the dashboard for focus."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En confinamiento solo puedes completar misiones difíciles y épicas. Usa la lista de recuperación en el panel principal."
+          }
+        }
+      }
+    },
+    "lockdown.quest.blocked_title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quest locked"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Misión bloqueada"
+          }
+        }
+      }
+    },
+    "lockdown.quest.row_locked" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can't access the full quest list until you leave lockdown."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No puedes acceder al listado completo de misiones hasta que salgas del confinamiento"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.empty" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hard or epic quests on your profile. After lockdown clears, you can add more from the dashboard."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay misiones difíciles o épicas. Cuando termine el confinamiento podrás añadir más desde el panel."
+          }
+        }
+      }
+    },
+    "lockdown.recovery.progress_line" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your HP dropped too low. Complete hard or epic quests to leave lockdown. Good luck."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu vida bajó demasiado y ahora debes cumplir misiones difíciles o épicas para salir del confinamiento. Buena suerte."
+          }
+        }
+      }
+    },
+    "lockdown.recovery.sheet_title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recovery quests"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Misiones de recuperación"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.section.epic_progress %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epic %lld/%lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Épicas %lld/%lld"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.section.hard_progress %lld %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hard %lld/%lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Difíciles %lld/%lld"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LOCKDOWN ACTIVE"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CONFINAMIENTO ACTIVO"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.info_alert.body_both" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You must complete %1$@ or %2$@ to exit lockdown. Only one path needs to be met—you do not have to fulfill both."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Debes completar %1$@ o %2$@ para salir del confinamiento. Solo debes cumplir una de las dos vías, no ambas."
+          }
+        }
+      }
+    },
+    "lockdown.recovery.info_alert.body_epic_only %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You must complete %@ to exit lockdown."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Debes completar %@ para salir del confinamiento."
+          }
+        }
+      }
+    },
+    "lockdown.recovery.info_alert.body_fallback" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete the required hard or epic quests configured in Settings to exit lockdown."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Completa las misiones difíciles o épicas requeridas en Ajustes para salir del confinamiento."
+          }
+        }
+      }
+    },
+    "lockdown.recovery.info_alert.body_hard_only %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You must complete %@ to exit lockdown."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Debes completar %@ para salir del confinamiento."
+          }
+        }
+      }
+    },
+    "lockdown.recovery.info_alert.epic.plural %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld epic quests"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld misiones épicas"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.info_alert.epic.singular %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld epic quest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld misión épica"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.info_alert.hard.plural %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld hard quests"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld misiones difíciles"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.info_alert.hard.singular %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld hard quest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld misión difícil"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.info_alert.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leaving lockdown"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salir del confinamiento"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.info_button.accessibility" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lockdown exit requirements"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requisitos para salir del confinamiento"
+          }
+        }
+      }
+    },
+    "lockdown.recovery.view_quests" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View hard & epic quests"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver misiones difíciles y épicas"
+          }
+        }
+      }
+    },
+    "settings.lockdown.footer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lockdown ends when you meet either minimum during the current episode (counts reset each time lockdown starts). Set a minimum to 0 to disable that path."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El confinamiento termina al cumplir cualquiera de los mínimos en el episodio actual (los contadores se reinician al entrar). Pon un mínimo en 0 para desactivar esa vía."
+          }
+        }
+      }
+    },
+    "settings.lockdown.min_epic" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epic quests to clear"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Misiones épicas para salir"
+          }
+        }
+      }
+    },
+    "settings.lockdown.min_hard" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hard quests to clear"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Misiones difíciles para salir"
+          }
+        }
+      }
+    },
+    "settings.lockdown.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lockdown recovery"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recuperación en confinamiento"
           }
         }
       }
