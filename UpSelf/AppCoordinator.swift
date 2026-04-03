@@ -72,6 +72,9 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         viewModel.onPresentQuestLog = { [weak self] in
             self?.pushQuestLog()
         }
+        viewModel.onPushRecoveryQuestList = { [weak self] in
+            self?.pushRecoveryQuestList()
+        }
 
         let dashboardRoot = DashboardView(viewModel: viewModel)
             .modelContainer(modelContainer)
@@ -91,6 +94,18 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
     }
 
     func presentCreateQuest() {
+        var descriptor = FetchDescriptor<UserProfile>()
+        descriptor.fetchLimit = 1
+        do {
+            if let profile = try modelContainer.mainContext.fetch(descriptor).first,
+               !LockdownPolicy.allows(.createQuest, isInLockdown: profile.isInLockdown) {
+                presentLockdownBlocksCreateQuestAlert()
+                return
+            }
+        } catch {
+            assertionFailure("presentCreateQuest profile fetch: \(error)")
+        }
+
         let viewModel = CreateQuestViewModel(modelContext: modelContainer.mainContext) { [weak self] in
             self?.dismissCreateQuestIfPresented()
         }
@@ -145,6 +160,9 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
     func pushQuestLog() {
         let clock = DependencyContainer[\.gameClock]
         let viewModel = QuestLogViewModel(modelContext: modelContainer.mainContext, gameClock: clock)
+        viewModel.onLockdownEngagedExit = { [weak self] in
+            self?.navigationController.popViewController(animated: true)
+        }
         let root = QuestLogView(viewModel: viewModel)
             .modelContainer(modelContainer)
             .environment(\.gameClock, clock)
@@ -153,6 +171,55 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         hosting.navigationItem.title = String(localized: L10n.QuestLog.title)
         hosting.hidesBottomBarWhenPushed = true
         navigationController.pushViewController(hosting, animated: true)
+    }
+
+    func pushRecoveryQuestList() {
+        let clock = DependencyContainer[\.gameClock]
+        let viewModel = QuestLogViewModel(modelContext: modelContainer.mainContext, gameClock: clock)
+        viewModel.onLockdownClearedExit = { [weak self] in
+            self?.popRecoveryQuestListAndPresentExitSuccess()
+        }
+        let root = RecoveryQuestListView(viewModel: viewModel)
+            .modelContainer(modelContainer)
+            .environment(\.gameClock, clock)
+        let hosting = UIHostingController(rootView: root)
+        hosting.view.backgroundColor = AppTheme.UIKitColors.background
+        hosting.navigationItem.title = String(localized: L10n.Lockdown.recoverySheetTitle)
+        hosting.hidesBottomBarWhenPushed = true
+        navigationController.pushViewController(hosting, animated: true)
+    }
+
+    private func popRecoveryQuestListAndPresentExitSuccess() {
+        navigationController.popViewController(animated: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+            self?.presentLockdownExitSuccessAlert()
+        }
+    }
+
+    private func presentLockdownExitSuccessAlert() {
+        let title = String(localized: L10n.Lockdown.exitSuccessTitle)
+        let message = String(localized: L10n.Lockdown.exitSuccessMessage)
+        let acceptTitle = String(localized: L10n.Common.ok)
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: acceptTitle, style: .default))
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            let host = Self.topMostViewController(from: self.tabBarController)
+            host.present(alert, animated: true)
+        }
+    }
+
+    private func presentLockdownBlocksCreateQuestAlert() {
+        let title = String(localized: L10n.Lockdown.createQuestBlockedTitle)
+        let message = String(localized: L10n.Lockdown.createQuestBlockedBody)
+        let acceptTitle = String(localized: L10n.Common.ok)
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: acceptTitle, style: .default))
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            let host = Self.topMostViewController(from: self.tabBarController)
+            host.present(alert, animated: true)
+        }
     }
 
     private func dismissCreateQuestIfPresented() {
