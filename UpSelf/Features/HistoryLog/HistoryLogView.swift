@@ -47,7 +47,7 @@ struct HistoryLogView: View {
                 .font(AppTheme.Fonts.mono(.caption2))
                 .foregroundStyle(AppTheme.Colors.secondaryLabel)
 
-            if log.kind == .xpGain, let split = splitXPGainMessage(log.message) {
+            if log.kind == .xpGain, let split = HistoryLogMessageFormatter.splitXPGainMessage(log.message) {
                 Text(split.xpOrQuestLine)
                     .font(AppTheme.Fonts.mono(.subheadline))
                     .foregroundStyle(AppTheme.Colors.accentXP)
@@ -59,29 +59,10 @@ struct HistoryLogView: View {
             } else {
                 Text(log.message)
                     .font(AppTheme.Fonts.mono(.subheadline))
-                    .foregroundStyle(rowForeground(for: log.kind))
+                    .foregroundStyle(HistoryLogMessageFormatter.rowForeground(for: log.kind))
                     .multilineTextAlignment(.leading)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    /// XP logs store `head\\nstat` (`L10n.ActivityLogCopy` + `ActivityLogService`).
-    private func splitXPGainMessage(_ message: String) -> (xpOrQuestLine: String, statLine: String)? {
-        let parts = message.split(separator: "\n", maxSplits: 1, omittingEmptySubsequences: false)
-        guard parts.count == 2 else { return nil }
-        let head = String(parts[0]).trimmingCharacters(in: .whitespacesAndNewlines)
-        let stat = String(parts[1]).trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !head.isEmpty, !stat.isEmpty else { return nil }
-        return (head, stat)
-    }
-
-    private func rowForeground(for kind: ActivityLogKind?) -> Color {
-        switch kind {
-        case .xpGain: AppTheme.Colors.accentXP
-        case .hpLoss: AppTheme.Colors.alertHP
-        case .system: AppTheme.Colors.secondaryLabel
-        case .none: AppTheme.Colors.secondaryLabel
-        }
     }
 }
