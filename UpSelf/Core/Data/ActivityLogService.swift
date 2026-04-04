@@ -23,8 +23,10 @@ enum ActivityLogService {
     }
 
     /// XP from completing a specific persisted quest (title + attribute in copy).
-    static func insertQuestXPGain(context: ModelContext, stat: CharacterStat, tier: QuestRewardTier, questTitle: String) {
-        guard let attribute = stat.kind, let profile = stat.user else { return }
+    /// Returns the inserted model so callers can `delete` it if a following `save()` fails.
+    @discardableResult
+    static func insertQuestXPGain(context: ModelContext, stat: CharacterStat, tier: QuestRewardTier, questTitle: String) -> ActivityLog? {
+        guard let attribute = stat.kind, let profile = stat.user else { return nil }
         let message = L10n.ActivityLogCopy.xpGainQuestMessage(
             xp: tier.xp,
             questTitle: questTitle,
@@ -32,6 +34,7 @@ enum ActivityLogService {
         )
         let log = ActivityLog(timestamp: eventTimestamp, message: message, kind: .xpGain, user: profile)
         context.insert(log)
+        return log
     }
 
     static func insertHPLoss(context: ModelContext, profile: UserProfile, message: String) {

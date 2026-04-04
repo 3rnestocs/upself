@@ -73,12 +73,15 @@ final class QuestLogViewModel {
         var clearedLockdownThisTransaction = false
 
         stat.currentXP += delta
-        ActivityLogService.insertQuestXPGain(
+        guard let insertedActivityLog = ActivityLogService.insertQuestXPGain(
             context: modelContext,
             stat: stat,
             tier: tier,
             questTitle: quest.title
-        )
+        ) else {
+            stat.currentXP -= delta
+            return
+        }
         quest.lastCompleted = ref
 
         if profile.isInLockdown {
@@ -114,6 +117,7 @@ final class QuestLogViewModel {
                 onLockdownClearedExit?()
             }
         } catch {
+            modelContext.delete(insertedActivityLog)
             stat.currentXP -= delta
             quest.lastCompleted = previousCompleted
             profile.lockdownEpicCompletions = previousEpic
