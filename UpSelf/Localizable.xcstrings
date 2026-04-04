@@ -2344,6 +2344,22 @@
         }
       }
     },
+    "settings.lockdown.save_failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't save lockdown settings. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudieron guardar los ajustes de confinamiento. Inténtalo de nuevo."
+          }
+        }
+      }
+    },
     "settings.data.section" : {
       "localizations" : {
         "en" : {

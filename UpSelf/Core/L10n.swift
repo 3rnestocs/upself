@@ -214,6 +214,7 @@ enum L10n {
         static let lockdownMinEpicLabel = LocalizedStringResource("settings.lockdown.min_epic")
         static let lockdownMinHardLabel = LocalizedStringResource("settings.lockdown.min_hard")
         static let lockdownFooter = LocalizedStringResource("settings.lockdown.footer")
+        static let lockdownSaveFailed = LocalizedStringResource("settings.lockdown.save_failed")
 
         static let dataSection = LocalizedStringResource("settings.data.section")
         static let dataResetFooter = LocalizedStringResource("settings.data.reset_footer")
