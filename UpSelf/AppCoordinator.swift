@@ -20,6 +20,11 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
 
     private var dashboardViewModel: DashboardViewModel?
     private weak var createQuestHostingController: UIViewController?
+    private var didStart = false
+
+    /// Serializes `UIAlertController` work to avoid overlapping `present` with sheets, tabs, or other alerts.
+    private var globalAlertQueue: [(@escaping () -> Void) -> Void] = []
+    private var isProcessingGlobalAlertQueue = false
 
     init(modelContainer: ModelContainer) {
         let homeNav = UINavigationController()
@@ -59,6 +64,9 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
     }
 
     func start() {
+        guard !didStart else { return }
+        didStart = true
+
         let clock = DependencyContainer[\.gameClock]
 
         let viewModel = DashboardViewModel()
@@ -160,8 +168,14 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
     func pushQuestLog() {
         let clock = DependencyContainer[\.gameClock]
         let viewModel = QuestLogViewModel(modelContext: modelContainer.mainContext, gameClock: clock)
+        // Defer pop: synchronous navigation from SwiftUI `onAppear` / `onChange` can tear down
+        // `UIHostingController` mid–update-cycle and cause intermittent crashes with Observation/@Query.
         viewModel.onLockdownEngagedExit = { [weak self] in
-            self?.navigationController.popViewController(animated: true)
+            DispatchQueue.main.async {
+                guard let self else { return }
+                guard self.navigationController.viewControllers.count > 1 else { return }
+                self.navigationController.popViewController(animated: true)
+            }
         }
         let root = QuestLogView(viewModel: viewModel)
             .modelContainer(modelContainer)
@@ -190,9 +204,13 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
     }
 
     private func popRecoveryQuestListAndPresentExitSuccess() {
-        navigationController.popViewController(animated: true)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
-            self?.presentLockdownExitSuccessAlert()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            guard self.navigationController.viewControllers.count > 1 else { return }
+            self.navigationController.popViewController(animated: true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+                self?.presentLockdownExitSuccessAlert()
+            }
         }
     }
 
@@ -200,12 +218,16 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         let title = String(localized: L10n.Lockdown.exitSuccessTitle)
         let message = String(localized: L10n.Lockdown.exitSuccessMessage)
         let acceptTitle = String(localized: L10n.Common.ok)
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: acceptTitle, style: .default))
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            let host = Self.topMostViewController(from: self.tabBarController)
-            host.present(alert, animated: true)
+        enqueueGlobalAlert { [weak self] finish in
+            guard let self else {
+                finish()
+                return
+            }
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: acceptTitle, style: .default) { _ in
+                finish()
+            })
+            self.presentOnIdleAlertHost(alert, animated: true, ifUnableToPresent: finish)
         }
     }
 
@@ -213,12 +235,16 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         let title = String(localized: L10n.Lockdown.createQuestBlockedTitle)
         let message = String(localized: L10n.Lockdown.createQuestBlockedBody)
         let acceptTitle = String(localized: L10n.Common.ok)
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: acceptTitle, style: .default))
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            let host = Self.topMostViewController(from: self.tabBarController)
-            host.present(alert, animated: true)
+        enqueueGlobalAlert { [weak self] finish in
+            guard let self else {
+                finish()
+                return
+            }
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: acceptTitle, style: .default) { _ in
+                finish()
+            })
+            self.presentOnIdleAlertHost(alert, animated: true, ifUnableToPresent: finish)
         }
     }
 
@@ -235,14 +261,19 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         let title = String(localized: L10n.HUD.hpLossAlertTitle)
         let message = L10n.HUD.hpLossAlertMessage(totalLost: totalHPLost)
         let acceptTitle = String(localized: L10n.HUD.hpLossAlertAccept)
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: acceptTitle, style: .default) { [weak self] _ in
-            self?.navigateToDashboardForHPLossReview()
-        })
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            let host = Self.topMostViewController(from: self.tabBarController)
-            host.present(alert, animated: true)
+        enqueueGlobalAlert { [weak self] finish in
+            guard let self else {
+                finish()
+                return
+            }
+            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: acceptTitle, style: .default) { [weak self] _ in
+                self?.navigateToDashboardForHPLossReview()
+                DispatchQueue.main.async {
+                    finish()
+                }
+            })
+            self.presentOnIdleAlertHost(alert, animated: true, ifUnableToPresent: finish)
         }
     }
 
@@ -254,10 +285,14 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
                 if presented === self?.createQuestHostingController {
                     self?.createQuestHostingController = nil
                 }
-                self?.navigationController.popToRootViewController(animated: true)
+                DispatchQueue.main.async {
+                    _ = self?.navigationController.popToRootViewController(animated: true)
+                }
             }
         } else {
-            navigationController.popToRootViewController(animated: true)
+            DispatchQueue.main.async { [weak self] in
+                _ = self?.navigationController.popToRootViewController(animated: true)
+            }
         }
     }
 
@@ -272,6 +307,50 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
             return topMostViewController(from: selected)
         }
         return root
+    }
+
+    // MARK: - Global alert queue
+
+    /// One alert at a time; `builder` receives `finish`, which **must** run when the alert path is done (including button taps).
+    private func enqueueGlobalAlert(_ builder: @escaping (@escaping () -> Void) -> Void) {
+        globalAlertQueue.append(builder)
+        processGlobalAlertQueueIfNeeded()
+    }
+
+    private func processGlobalAlertQueueIfNeeded() {
+        guard !isProcessingGlobalAlertQueue, !globalAlertQueue.isEmpty else { return }
+        isProcessingGlobalAlertQueue = true
+        let next = globalAlertQueue.removeFirst()
+        DispatchQueue.main.async { [weak self] in
+            next {
+                self?.completeGlobalAlertQueueItem()
+            }
+        }
+    }
+
+    private func completeGlobalAlertQueueItem() {
+        isProcessingGlobalAlertQueue = false
+        processGlobalAlertQueueIfNeeded()
+    }
+
+    /// Presents when the top VC is not mid-transition; retries on the next run loop if needed.
+    private func presentOnIdleAlertHost(_ alert: UIAlertController, animated: Bool, ifUnableToPresent: @escaping () -> Void, idleRetryAttempt: Int = 0) {
+        let host = Self.topMostViewController(from: tabBarController)
+        if host.isBeingDismissed || host.isMovingToParent || host.isBeingPresented {
+            if idleRetryAttempt >= 24 {
+                ifUnableToPresent()
+                return
+            }
+            DispatchQueue.main.async { [weak self] in
+                self?.presentOnIdleAlertHost(alert, animated: animated, ifUnableToPresent: ifUnableToPresent, idleRetryAttempt: idleRetryAttempt + 1)
+            }
+            return
+        }
+        host.present(alert, animated: animated) {
+            if host.presentedViewController !== alert {
+                ifUnableToPresent()
+            }
+        }
     }
 
     // MARK: - UINavigationControllerDelegate
@@ -290,8 +369,17 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
         guard viewController === settingsNavigationController else { return }
         guard navigationController.viewControllers.count > 1 else { return }
-        DispatchQueue.main.async { [weak self] in
-            self?.navigationController.popToRootViewController(animated: false)
+        let popHomeToRoot = { [weak self] in
+            _ = self?.navigationController.popToRootViewController(animated: false)
+        }
+        if let coordinator = tabBarController.transitionCoordinator {
+            coordinator.animate(alongsideTransition: nil) { [weak self] context in
+                guard let self else { return }
+                guard !context.isCancelled else { return }
+                popHomeToRoot()
+            }
+        } else {
+            DispatchQueue.main.async(execute: popHomeToRoot)
         }
     }
 }
@@ -300,6 +388,7 @@ struct CoordinatorView: UIViewControllerRepresentable {
     let coordinator: AppCoordinator
 
     func makeUIViewController(context: Context) -> UITabBarController {
+        /// `start()` is idempotent (`didStart`); avoids rebuilding stacks if representable is recreated.
         coordinator.start()
         return coordinator.tabBarController
     }
