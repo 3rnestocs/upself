@@ -27,6 +27,8 @@
 
 - **Never** use `NavigationLink`, `NavigationStack`, or `@Environment(\.presentationMode)` for **primary app navigation**.
 - Route new screens through **`AppCoordinator`** (or feature coordinators) + `UIHostingController`.
+- **UIKit navigation is coordinator-only:** Do **not** call `pushViewController`, `popViewController`, `popToRootViewController`, or `present` / `dismiss` on the app’s `UINavigationController` (or tab-owned nav stacks) from **Views**, **ViewModels**, or ad hoc helpers. Add a method on **`AppCoordinator`** (or the owning feature coordinator), build the `UIHostingController` there, and perform the transition there — using the existing deferred helpers (`enqueueHomeNavigationPush`, `enqueueHomeNavigationModalPresent`, etc.) when the entry point is SwiftUI so transitions don’t run in the same turn as gesture/button handling.
+- **SwiftUI-only sheets** (local `sheet`, small overlays) may stay on the View when they are **not** app-level stack navigation — still no `UINavigationController` mutation outside the coordinator.
 
 ### New features (“triad”)
 
@@ -120,6 +122,7 @@ Goal: **readable history**, **small reviewable units**, and **modular changes** 
 ## Quick checklist before finishing a UI task
 
 - [ ] No `NavigationLink` / primary `NavigationStack` routing introduced.
+- [ ] No direct **`UINavigationController` push/pop/present** outside **`AppCoordinator`** (or feature coordinators) for primary flows.
 - [ ] Colors/spacing/fonts from **`AppTheme`**.
 - [ ] Strings from **`L10n`** + **`Localizable.xcstrings`**.
 - [ ] SwiftData reads in Views via **`@Query`** (or injected models) where appropriate.
