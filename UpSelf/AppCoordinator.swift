@@ -21,6 +21,8 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
     private var dashboardViewModel: DashboardViewModel?
     private weak var createQuestHostingController: UIViewController?
     private var didStart = false
+    /// Invalidates deferred “pop home when opening Settings” work if the user switches tabs again first.
+    private var homePopWhenSettingsSelectedGeneration: UInt64 = 0
 
     /// Serializes `UIAlertController` work to avoid overlapping `present` with sheets, tabs, or other alerts.
     private var globalAlertQueue: [(@escaping () -> Void) -> Void] = []
@@ -92,7 +94,8 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
 
         navigationController.setViewControllers([initialVC], animated: false)
 
-        let settingsRoot = SettingsView()
+        let settingsViewModel = SettingsViewModel(modelContext: modelContainer.mainContext, gameClock: clock)
+        let settingsRoot = SettingsView(viewModel: settingsViewModel)
             .modelContainer(modelContainer)
             .environment(\.gameClock, clock)
         let settingsHosting = UIHostingController(rootView: settingsRoot)
@@ -152,7 +155,29 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         }
 
         createQuestHostingController = hosting
-        navigationController.present(hosting, animated: true)
+        enqueueHomeNavigationModalPresent(hosting, animated: true)
+    }
+
+    /// Defers `pushViewController` so it does not run inside SwiftUI button handling / tab-bar transitions
+    /// on the same turn—which can trigger UIKit `__NSArrayM insertObject:… object cannot be nil` with `UIHostingController`.
+    private func enqueueHomeNavigationPush(_ viewController: UIViewController, animated: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            guard self.tabBarController.selectedViewController === self.navigationController else { return }
+            self.navigationController.pushViewController(viewController, animated: animated)
+            // Deferred pushes can leave `willShow` + stack ordering out of sync; force bar visible for any pushed stack.
+            self.updateHomeNavigationBarVisibility(for: self.navigationController, animated: animated)
+        }
+    }
+
+    /// Same rationale as ``enqueueHomeNavigationPush`` for modal sheets presented off the home nav controller.
+    private func enqueueHomeNavigationModalPresent(_ viewController: UIViewController, animated: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            guard self.tabBarController.selectedViewController === self.navigationController else { return }
+            guard self.navigationController.presentedViewController == nil else { return }
+            self.navigationController.present(viewController, animated: animated)
+        }
     }
 
     func pushHistoryLog() {
@@ -162,7 +187,7 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         hosting.view.backgroundColor = AppTheme.UIKitColors.background
         hosting.navigationItem.title = String(localized: L10n.HistoryLog.title)
         hosting.hidesBottomBarWhenPushed = true
-        navigationController.pushViewController(hosting, animated: true)
+        enqueueHomeNavigationPush(hosting, animated: true)
     }
 
     func pushQuestLog() {
@@ -184,7 +209,7 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         hosting.view.backgroundColor = AppTheme.UIKitColors.background
         hosting.navigationItem.title = String(localized: L10n.QuestLog.title)
         hosting.hidesBottomBarWhenPushed = true
-        navigationController.pushViewController(hosting, animated: true)
+        enqueueHomeNavigationPush(hosting, animated: true)
     }
 
     func pushRecoveryQuestList() {
@@ -200,7 +225,7 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         hosting.view.backgroundColor = AppTheme.UIKitColors.background
         hosting.navigationItem.title = String(localized: L10n.Lockdown.recoverySheetTitle)
         hosting.hidesBottomBarWhenPushed = true
-        navigationController.pushViewController(hosting, animated: true)
+        enqueueHomeNavigationPush(hosting, animated: true)
     }
 
     private func popRecoveryQuestListAndPresentExitSuccess() {
@@ -355,10 +380,20 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
 
     // MARK: - UINavigationControllerDelegate
 
-    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+    /// Dashboard root: hidden bar. Any pushed screen: show bar (back button). Uses stack **count** so deferred
+    /// pushes + tab transitions don’t mis-classify the top VC vs `viewControllers.first` during `willShow`.
+    private func updateHomeNavigationBarVisibility(for navigationController: UINavigationController, animated: Bool) {
         guard navigationController === self.navigationController else { return }
-        let isDashboardRoot = navigationController.viewControllers.first === viewController
-        navigationController.setNavigationBarHidden(isDashboardRoot, animated: animated)
+        let isOnlyRoot = navigationController.viewControllers.count <= 1
+        navigationController.setNavigationBarHidden(isOnlyRoot, animated: animated)
+    }
+
+    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        updateHomeNavigationBarVisibility(for: navigationController, animated: animated)
+    }
+
+    func navigationController(_ navigationController: UINavigationController, didShow viewController: UIViewController, animated: Bool) {
+        updateHomeNavigationBarVisibility(for: navigationController, animated: animated)
     }
 
     // MARK: - UITabBarControllerDelegate
@@ -366,20 +401,21 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
     /// When opening **Settings**, pop the **home** stack so a pushed screen (e.g. activity log) isn’t left
     /// under an inactive tab. Do **not** pop the settings stack when returning home — doing that during the
     /// tab transition races with `UIHostingController` + SwiftUI (`@Observable` / game clock) and can crash.
+    ///
+    /// Avoid `transitionCoordinator.animate(completion:)` for the pop: that completion can fire after the user
+    /// has already switched back to **Home**, so mutating the home stack then leads to UIKit exceptions
+    /// (e.g. `insertObject:atIndex: object cannot be nil`) in mixed SwiftUI tab scenes.
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
         guard viewController === settingsNavigationController else { return }
         guard navigationController.viewControllers.count > 1 else { return }
-        let popHomeToRoot = { [weak self] in
-            _ = self?.navigationController.popToRootViewController(animated: false)
-        }
-        if let coordinator = tabBarController.transitionCoordinator {
-            coordinator.animate(alongsideTransition: nil) { [weak self] context in
-                guard let self else { return }
-                guard !context.isCancelled else { return }
-                popHomeToRoot()
-            }
-        } else {
-            DispatchQueue.main.async(execute: popHomeToRoot)
+        homePopWhenSettingsSelectedGeneration += 1
+        let generation = homePopWhenSettingsSelectedGeneration
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            guard generation == self.homePopWhenSettingsSelectedGeneration else { return }
+            guard self.tabBarController.selectedViewController === self.settingsNavigationController else { return }
+            guard self.navigationController.viewControllers.count > 1 else { return }
+            _ = self.navigationController.popToRootViewController(animated: false)
         }
     }
 }
