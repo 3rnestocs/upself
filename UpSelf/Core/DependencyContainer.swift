@@ -101,3 +101,14 @@ extension DependencyContainer {
         set { DependencyContainer[GameClockKey.self] = newValue }
     }
 }
+
+private struct LocalAppResetServiceKey: InjectionKey {
+    static var currentValue: LocalAppResetServiceProtocol = LocalAppResetService()
+}
+
+extension DependencyContainer {
+    var localAppResetService: LocalAppResetServiceProtocol {
+        get { DependencyContainer[LocalAppResetServiceKey.self] }
+        set { DependencyContainer[LocalAppResetServiceKey.self] = newValue }
+    }
+}
