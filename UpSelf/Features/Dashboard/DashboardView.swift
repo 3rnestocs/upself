@@ -13,7 +13,7 @@ struct DashboardView: View {
     @Query(sort: \CharacterStat.kindRawValue) private var allStats: [CharacterStat]
     @Query(sort: \Quest.title) private var allQuests: [Quest]
 
-    @Bindable private var gameClock = DependencyContainer[\.gameClock]
+    @Environment(\.gameClock) private var gameClock
     @State private var showStatsInfo = false
     @State private var showLockdownRecoveryInfo = false
 

@@ -20,7 +20,7 @@ struct RecoveryQuestListView: View {
     @Query(sort: \UserProfile.id) private var profiles: [UserProfile]
     @Query(sort: \Quest.title) private var allQuests: [Quest]
 
-    @Bindable private var gameClock = DependencyContainer[\.gameClock]
+    @Environment(\.gameClock) private var gameClock
 
     private let viewModel: QuestLogViewModel
 
