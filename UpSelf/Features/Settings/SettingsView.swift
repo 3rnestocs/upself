@@ -9,22 +9,17 @@ import SwiftData
 import SwiftUI
 
 struct SettingsView: View {
-    @Environment(\.modelContext) private var modelContext
     @Query(sort: \UserProfile.id) private var profiles: [UserProfile]
-    @Bindable private var gameClock = DependencyContainer[\.gameClock]
+    @Bindable private var viewModel: SettingsViewModel
 
-    /// Draft offset; tap **Apply** to use it for dailies / penalties (saved in DEBUG).
-    @State private var draftDayOffset: Int = 0
-    @State private var watermarkStatus: String?
     @State private var showResetDataConfirm = false
-    @State private var resetDataStatus: String?
+
+    init(viewModel: SettingsViewModel) {
+        self.viewModel = viewModel
+    }
 
     private var appVersion: String {
         (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "—"
-    }
-
-    private var hasUnappliedDraft: Bool {
-        draftDayOffset != gameClock.dayOffset
     }
 
     var body: some View {
@@ -54,11 +49,7 @@ struct SettingsView: View {
                 if let profile = profiles.first {
                     Stepper(value: Binding(
                         get: { profile.lockdownMinEpicQuestsToClear },
-                        set: { newValue in
-                            profile.lockdownMinEpicQuestsToClear = max(0, min(20, newValue))
-                            normalizeLockdownMinimums(profile)
-                            try? modelContext.save()
-                        }
+                        set: { viewModel.updateLockdownMinEpic(for: profile, rawValue: $0) }
                     ), in: 0...20, step: 1) {
                         Text(L10n.Settings.lockdownMinEpicLabel)
                             .font(AppTheme.Fonts.ui(.body))
@@ -67,16 +58,18 @@ struct SettingsView: View {
 
                     Stepper(value: Binding(
                         get: { profile.lockdownMinHardQuestsToClear },
-                        set: { newValue in
-                            profile.lockdownMinHardQuestsToClear = max(0, min(20, newValue))
-                            normalizeLockdownMinimums(profile)
-                            try? modelContext.save()
-                        }
+                        set: { viewModel.updateLockdownMinHard(for: profile, rawValue: $0) }
                     ), in: 0...20, step: 1) {
                         Text(L10n.Settings.lockdownMinHardLabel)
                             .font(AppTheme.Fonts.ui(.body))
                     }
                     .tint(AppTheme.Colors.accentXP)
+
+                    if let message = viewModel.lockdownPersistenceError {
+                        Text(message)
+                            .font(AppTheme.Fonts.mono(.caption2))
+                            .foregroundStyle(AppTheme.Colors.alertHP)
+                    }
                 }
             } header: {
                 Text(L10n.Settings.lockdownSection)
@@ -94,7 +87,7 @@ struct SettingsView: View {
                 }
                 .tint(AppTheme.Colors.alertHP)
 
-                if let resetDataStatus {
+                if let resetDataStatus = viewModel.resetDataStatus {
                     Text(resetDataStatus)
                         .font(AppTheme.Fonts.mono(.caption2))
                         .foregroundStyle(AppTheme.Colors.secondaryLabel)
@@ -112,7 +105,7 @@ struct SettingsView: View {
                     Text(L10n.Settings.effectiveGameDay)
                         .font(AppTheme.Fonts.ui(.caption))
                         .foregroundStyle(AppTheme.Colors.secondaryLabel)
-                    Text(gameClock.formattedGameCalendarDayLabel(dayOffset: draftDayOffset))
+                    Text(viewModel.formattedDraftGameDayLabel())
                         .font(AppTheme.Fonts.mono(.headline))
                         .foregroundStyle(AppTheme.Colors.accentXP)
                 }
@@ -123,35 +116,34 @@ struct SettingsView: View {
                     trailing: AppTheme.Spacing.md
                 ))
 
-                Stepper(value: $draftDayOffset, in: -14...14, step: 1) {
+                Stepper(value: $viewModel.draftDayOffset, in: -14...14, step: 1) {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                         Text(L10n.Settings.gameClockLabel)
                             .font(AppTheme.Fonts.ui(.body))
-                        Text(L10n.Settings.gameClockOffsetDescription(draftDayOffset))
+                        Text(L10n.Settings.gameClockOffsetDescription(viewModel.draftDayOffset))
                             .font(AppTheme.Fonts.mono(.caption))
                             .foregroundStyle(AppTheme.Colors.secondaryLabel)
                     }
                 }
                 .tint(AppTheme.Colors.accentXP)
 
-                if hasUnappliedDraft {
+                if viewModel.hasUnappliedGameDayDraft {
                     Text(L10n.Settings.draftPending)
                         .font(AppTheme.Fonts.mono(.caption))
                         .foregroundStyle(AppTheme.Colors.amber)
                 }
 
                 Button {
-                    gameClock.dayOffset = draftDayOffset
+                    viewModel.applyGameDayDraft()
                 } label: {
                     Text(L10n.Settings.applyGameDay)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .disabled(!hasUnappliedDraft)
+                .disabled(!viewModel.hasUnappliedGameDayDraft)
                 .tint(AppTheme.Colors.accentXP)
 
                 Button {
-                    draftDayOffset = 0
-                    gameClock.dayOffset = 0
+                    viewModel.useRealGameDay()
                 } label: {
                     Text(L10n.Settings.useRealToday)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -159,22 +151,14 @@ struct SettingsView: View {
                 .tint(AppTheme.Colors.secondaryLabel)
 
                 Button {
-                    do {
-                        try MissedDailyPenaltyService.debugResetEvaluationWatermark(
-                            context: modelContext,
-                            clock: gameClock
-                        )
-                        watermarkStatus = String(localized: L10n.Settings.watermarkResetDone)
-                    } catch {
-                        watermarkStatus = String(localized: L10n.Settings.watermarkResetFailed)
-                    }
+                    viewModel.debugResetMissedDailyWatermark()
                 } label: {
                     Text(L10n.Settings.resetWatermark)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .tint(AppTheme.Colors.alertHP)
 
-                if let watermarkStatus {
+                if let watermarkStatus = viewModel.developerWatermarkStatus {
                     Text(watermarkStatus)
                         .font(AppTheme.Fonts.mono(.caption2))
                         .foregroundStyle(AppTheme.Colors.secondaryLabel)
@@ -190,41 +174,19 @@ struct SettingsView: View {
         .navigationBarTitleDisplayMode(.large)
         .scrollContentBackground(.hidden)
         .background(AppTheme.Colors.background)
-        #if DEBUG
         .onAppear {
-            draftDayOffset = gameClock.dayOffset
+            viewModel.onAppear()
         }
-        #endif
         .alert(
             String(localized: L10n.Settings.dataResetAlertTitle),
             isPresented: $showResetDataConfirm
         ) {
             Button(String(localized: L10n.Common.cancel), role: .cancel) {}
             Button(String(localized: L10n.Settings.dataResetConfirm), role: .destructive) {
-                performLocalDataReset()
+                viewModel.performLocalDataReset()
             }
         } message: {
             Text(L10n.Settings.dataResetAlertMessage)
-        }
-    }
-
-    private func performLocalDataReset() {
-        let service = DependencyContainer[\.localAppResetService]
-        do {
-            try service.resetAllLocalState(context: modelContext)
-            resetDataStatus = String(localized: L10n.Settings.dataResetDone)
-            #if DEBUG
-            draftDayOffset = gameClock.dayOffset
-            #endif
-        } catch {
-            resetDataStatus = String(localized: L10n.Settings.dataResetFailed)
-        }
-    }
-
-    private func normalizeLockdownMinimums(_ profile: UserProfile) {
-        if profile.lockdownMinEpicQuestsToClear == 0 && profile.lockdownMinHardQuestsToClear == 0 {
-            profile.lockdownMinEpicQuestsToClear = 1
-            profile.lockdownMinHardQuestsToClear = 2
         }
     }
 }
