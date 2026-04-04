@@ -16,6 +16,8 @@ struct SettingsView: View {
     /// Draft offset; tap **Apply** to use it for dailies / penalties (saved in DEBUG).
     @State private var draftDayOffset: Int = 0
     @State private var watermarkStatus: String?
+    @State private var showResetDataConfirm = false
+    @State private var resetDataStatus: String?
 
     private var appVersion: String {
         (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "—"
@@ -80,6 +82,27 @@ struct SettingsView: View {
                 Text(L10n.Settings.lockdownSection)
             } footer: {
                 Text(L10n.Settings.lockdownFooter)
+                    .font(AppTheme.Fonts.mono(.caption2))
+            }
+
+            Section {
+                Button {
+                    showResetDataConfirm = true
+                } label: {
+                    Text(L10n.Settings.dataResetButton)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .tint(AppTheme.Colors.alertHP)
+
+                if let resetDataStatus {
+                    Text(resetDataStatus)
+                        .font(AppTheme.Fonts.mono(.caption2))
+                        .foregroundStyle(AppTheme.Colors.secondaryLabel)
+                }
+            } header: {
+                Text(L10n.Settings.dataSection)
+            } footer: {
+                Text(L10n.Settings.dataResetFooter)
                     .font(AppTheme.Fonts.mono(.caption2))
             }
 
@@ -172,6 +195,30 @@ struct SettingsView: View {
             draftDayOffset = gameClock.dayOffset
         }
         #endif
+        .alert(
+            String(localized: L10n.Settings.dataResetAlertTitle),
+            isPresented: $showResetDataConfirm
+        ) {
+            Button(String(localized: L10n.Common.cancel), role: .cancel) {}
+            Button(String(localized: L10n.Settings.dataResetConfirm), role: .destructive) {
+                performLocalDataReset()
+            }
+        } message: {
+            Text(L10n.Settings.dataResetAlertMessage)
+        }
+    }
+
+    private func performLocalDataReset() {
+        let service = DependencyContainer[\.localAppResetService]
+        do {
+            try service.resetAllLocalState(context: modelContext)
+            resetDataStatus = String(localized: L10n.Settings.dataResetDone)
+            #if DEBUG
+            draftDayOffset = gameClock.dayOffset
+            #endif
+        } catch {
+            resetDataStatus = String(localized: L10n.Settings.dataResetFailed)
+        }
     }
 
     private func normalizeLockdownMinimums(_ profile: UserProfile) {
