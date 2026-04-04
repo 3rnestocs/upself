@@ -76,6 +76,10 @@ enum ContentSizedSheet {
         private(set) var measuredContentHeight: CGFloat = 0
         var onInvalidateDetents: (() -> Void)?
 
+        /// Coalesces `invalidateDetents()` so keyboard / layout storms do not re-enter UIKit sheet layout.
+        private var invalidateDetentsWorkItem: DispatchWorkItem?
+        private var lastInvalidationAtMeasurement: CGFloat = 0
+
         init(configuration: Configuration) {
             self.configuration = configuration
         }
@@ -83,6 +87,20 @@ enum ContentSizedSheet {
         func updateMeasuredContentHeight(_ height: CGFloat) {
             guard height > 1 else { return }
             measuredContentHeight = height
+            invalidateDetentsWorkItem?.cancel()
+            let work = DispatchWorkItem { [weak self] in
+                self?.flushInvalidateDetentsIfNeeded()
+            }
+            invalidateDetentsWorkItem = work
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.088, execute: work)
+        }
+
+        private func flushInvalidateDetentsIfNeeded() {
+            let h = measuredContentHeight
+            let first = lastInvalidationAtMeasurement <= 1
+            let significant = abs(h - lastInvalidationAtMeasurement) >= 6
+            guard first || significant else { return }
+            lastInvalidationAtMeasurement = h
             onInvalidateDetents?()
         }
 
