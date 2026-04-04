@@ -27,6 +27,9 @@ final class SettingsViewModel {
     var draftDayOffset: Int = 0
     #endif
 
+    /// Set by `AppCoordinator` to show reset confirmation via `GlobalUIKitAlertPresenter`.
+    var onRequestLocalDataResetConfirmation: (() -> Void)?
+
     init(
         modelContext: ModelContext,
         gameClock: GameClock,
@@ -94,6 +97,10 @@ final class SettingsViewModel {
         profile.lockdownMinHardQuestsToClear = clamped
         Self.normalizeLockdownMinimums(profile)
         persistAfterLockdownChange(revertingOnFailure: profile, epic: previousEpic, hard: previousHard)
+    }
+
+    func requestLocalDataResetConfirmation() {
+        onRequestLocalDataResetConfirmation?()
     }
 
     func performLocalDataReset() {

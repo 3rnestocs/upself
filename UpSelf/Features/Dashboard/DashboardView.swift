@@ -15,7 +15,6 @@ struct DashboardView: View {
 
     @Environment(\.gameClock) private var gameClock
     @State private var showStatsInfo = false
-    @State private var showLockdownRecoveryInfo = false
 
     private let viewModel: DashboardViewModel
 
@@ -78,14 +77,6 @@ struct DashboardView: View {
         .background(AppTheme.Colors.background.ignoresSafeArea())
         .sheet(isPresented: $showStatsInfo) {
             StatsInfoSheet()
-        }
-        .alert(String(localized: L10n.Lockdown.recoveryInfoAlertTitle), isPresented: $showLockdownRecoveryInfo) {
-            Button(String(localized: L10n.Common.ok), role: .cancel) {}
-        } message: {
-            Text(verbatim: L10n.Lockdown.recoveryInfoAlertMessage(
-                minHard: profile?.lockdownMinHardQuestsToClear ?? 0,
-                minEpic: profile?.lockdownMinEpicQuestsToClear ?? 0
-            ))
         }
     }
 
@@ -200,7 +191,10 @@ struct DashboardView: View {
                     .foregroundStyle(AppTheme.Colors.accentXP)
                 Spacer(minLength: AppTheme.Spacing.sm)
                 Button {
-                    showLockdownRecoveryInfo = true
+                    viewModel.presentLockdownRecoveryInfo(
+                        minHard: profile?.lockdownMinHardQuestsToClear ?? 0,
+                        minEpic: profile?.lockdownMinEpicQuestsToClear ?? 0
+                    )
                 } label: {
                     Image(systemName: "info.circle")
                         .font(AppTheme.Fonts.ui(.headline))

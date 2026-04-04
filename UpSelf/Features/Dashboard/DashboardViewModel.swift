@@ -23,6 +23,9 @@ final class DashboardViewModel {
     /// Set by `AppCoordinator` to push the lockdown recovery (hard/epic) list.
     var onPushRecoveryQuestList: (() -> Void)?
 
+    /// Set by `AppCoordinator` to show lockdown recovery requirements (system alert).
+    var onPresentLockdownRecoveryInfo: ((_ minHard: Int, _ minEpic: Int) -> Void)?
+
     init() {}
 
     func presentCreateQuest() {
@@ -39,5 +42,9 @@ final class DashboardViewModel {
 
     func pushRecoveryQuestList() {
         onPushRecoveryQuestList?()
+    }
+
+    func presentLockdownRecoveryInfo(minHard: Int, minEpic: Int) {
+        onPresentLockdownRecoveryInfo?(minHard, minEpic)
     }
 }

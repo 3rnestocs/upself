@@ -38,17 +38,21 @@ private struct AppRootView: View {
         CoordinatorView(coordinator: coordinator)
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active else { return }
-                let context = ModelContext(DependencyContainer[\.modelContainer])
-                do {
-                    let lost = try MissedDailyPenaltyService.evaluateIfNeeded(
-                        context: context,
-                        clock: DependencyContainer[\.gameClock]
-                    )
-                    if lost > 0 {
-                        coordinator.presentMissedDailyHPLossAlert(totalHPLost: lost)
+                // Defer past this run loop so `UIHostingController` / tab roots can attach to the key window
+                // before any `UIAlertController` presentation (avoids “first alert is slow”, works smooth after).
+                DispatchQueue.main.async {
+                    let context = ModelContext(DependencyContainer[\.modelContainer])
+                    do {
+                        let lost = try MissedDailyPenaltyService.evaluateIfNeeded(
+                            context: context,
+                            clock: DependencyContainer[\.gameClock]
+                        )
+                        if lost > 0 {
+                            coordinator.presentMissedDailyHPLossAlert(totalHPLost: lost)
+                        }
+                    } catch {
+                        assertionFailure("MissedDailyPenaltyService: \(error)")
                     }
-                } catch {
-                    assertionFailure("MissedDailyPenaltyService: \(error)")
                 }
             }
     }

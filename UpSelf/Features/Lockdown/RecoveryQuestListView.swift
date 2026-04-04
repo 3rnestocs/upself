@@ -11,11 +11,6 @@ import SwiftUI
 import UIKit
 #endif
 
-private struct RecoveryQuestPendingCompletion: Identifiable {
-    let id: UUID
-    let title: String
-}
-
 struct RecoveryQuestListView: View {
     @Query(sort: \UserProfile.id) private var profiles: [UserProfile]
     @Query(sort: \Quest.title) private var allQuests: [Quest]
@@ -23,9 +18,6 @@ struct RecoveryQuestListView: View {
     @Environment(\.gameClock) private var gameClock
 
     private let viewModel: QuestLogViewModel
-
-    @State private var showLockdownBlockedAlert = false
-    @State private var pendingCompletion: RecoveryQuestPendingCompletion?
 
     init(viewModel: QuestLogViewModel) {
         self.viewModel = viewModel
@@ -127,50 +119,18 @@ struct RecoveryQuestListView: View {
         .padding(AppTheme.Spacing.md)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(AppTheme.Colors.background)
-        .alert(String(localized: L10n.Lockdown.recoveryCompleteConfirmTitle), isPresented: Binding(
-            get: { pendingCompletion != nil },
-            set: { if !$0 { pendingCompletion = nil } }
-        )) {
-            Button(String(localized: L10n.Common.cancel), role: .cancel) {
-                pendingCompletion = nil
-            }
-            Button(String(localized: L10n.Lockdown.recoveryCompleteConfirmAction)) {
-                confirmPendingCompletion()
-            }
-        } message: {
-            if let pending = pendingCompletion {
-                Text(L10n.Lockdown.recoveryCompleteConfirmMessage(questTitle: pending.title))
-            }
-        }
-        .alert(String(localized: L10n.Lockdown.cannotCompleteEasyRegularTitle), isPresented: $showLockdownBlockedAlert) {
-            Button(String(localized: L10n.Common.ok), role: .cancel) {
-                viewModel.clearLockdownNotice()
-            }
-        } message: {
-            Text(verbatim: viewModel.lockdownBlockedNotice ?? "")
-        }
-        .onChange(of: viewModel.lockdownBlockedNotice) { _, new in
-            showLockdownBlockedAlert = (new != nil)
-        }
     }
 
     private func requestComplete(_ quest: Quest) {
         #if canImport(UIKit)
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         #endif
-        pendingCompletion = RecoveryQuestPendingCompletion(
-            id: quest.id,
-            title: quest.title
-        )
-    }
-
-    private func confirmPendingCompletion() {
-        guard let pending = pendingCompletion else { return }
-        let questID = pending.id
-        pendingCompletion = nil
-        DispatchQueue.main.async {
-            guard let quest = allQuests.first(where: { $0.id == questID }) else { return }
-            viewModel.completePersistedQuest(quest)
+        let questID = quest.id
+        viewModel.presentRecoveryQuestCompleteConfirm(questTitle: quest.title) {
+            DispatchQueue.main.async {
+                guard let q = allQuests.first(where: { $0.id == questID }) else { return }
+                viewModel.completePersistedQuest(q)
+            }
         }
     }
 

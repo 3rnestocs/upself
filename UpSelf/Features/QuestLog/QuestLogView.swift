@@ -25,8 +25,6 @@ struct QuestLogView: View {
     private let viewModel: QuestLogViewModel
 
     @State private var filter: QuestLogFilter = .daily
-    @State private var showInstructions = false
-    @State private var showLockdownBlockedAlert = false
 
     init(viewModel: QuestLogViewModel) {
         self.viewModel = viewModel
@@ -93,7 +91,7 @@ struct QuestLogView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    showInstructions = true
+                    viewModel.presentQuestLogInstructions()
                 } label: {
                     Image(systemName: "info.circle")
                         .foregroundStyle(AppTheme.Colors.accentXP)
@@ -101,21 +99,6 @@ struct QuestLogView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(String(localized: L10n.QuestLog.instructionsButtonAccessibility))
             }
-        }
-        .alert(String(localized: L10n.QuestLog.instructionsTitle), isPresented: $showInstructions) {
-            Button(String(localized: L10n.Common.ok), role: .cancel) {}
-        } message: {
-            Text(L10n.QuestLog.instructionsBody)
-        }
-        .alert(String(localized: L10n.Lockdown.cannotCompleteEasyRegularTitle), isPresented: $showLockdownBlockedAlert) {
-            Button(String(localized: L10n.Common.ok), role: .cancel) {
-                viewModel.clearLockdownNotice()
-            }
-        } message: {
-            Text(verbatim: viewModel.lockdownBlockedNotice ?? "")
-        }
-        .onChange(of: viewModel.lockdownBlockedNotice) { _, new in
-            showLockdownBlockedAlert = (new != nil)
         }
     }
 

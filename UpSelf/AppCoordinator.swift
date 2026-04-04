@@ -19,14 +19,13 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
     private let modelContainer: ModelContainer
 
     private var dashboardViewModel: DashboardViewModel?
+    private var settingsViewModel: SettingsViewModel?
     private weak var createQuestHostingController: UIViewController?
     private var didStart = false
     /// Invalidates deferred “pop home when opening Settings” work if the user switches tabs again first.
     private var homePopWhenSettingsSelectedGeneration: UInt64 = 0
 
-    /// Serializes `UIAlertController` work to avoid overlapping `present` with sheets, tabs, or other alerts.
-    private var globalAlertQueue: [(@escaping () -> Void) -> Void] = []
-    private var isProcessingGlobalAlertQueue = false
+    private let globalAlerts: GlobalUIKitAlertPresenter
 
     init(modelContainer: ModelContainer) {
         let homeNav = UINavigationController()
@@ -37,6 +36,7 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         self.settingsNavigationController = settingsNav
         self.tabBarController = tabs
         self.modelContainer = modelContainer
+        self.globalAlerts = GlobalUIKitAlertPresenter(tabBarController: tabs)
 
         super.init()
 
@@ -85,6 +85,9 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         viewModel.onPushRecoveryQuestList = { [weak self] in
             self?.pushRecoveryQuestList()
         }
+        viewModel.onPresentLockdownRecoveryInfo = { [weak self] minHard, minEpic in
+            self?.presentLockdownRecoveryInfoAlert(minHard: minHard, minEpic: minEpic)
+        }
 
         let dashboardRoot = DashboardView(viewModel: viewModel)
             .modelContainer(modelContainer)
@@ -95,6 +98,11 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         navigationController.setViewControllers([initialVC], animated: false)
 
         let settingsViewModel = SettingsViewModel(modelContext: modelContainer.mainContext, gameClock: clock)
+        self.settingsViewModel = settingsViewModel
+        settingsViewModel.onRequestLocalDataResetConfirmation = { [weak self] in
+            guard let self, let svm = self.settingsViewModel else { return }
+            self.presentLocalDataResetConfirmation(settingsViewModel: svm)
+        }
         let settingsRoot = SettingsView(viewModel: settingsViewModel)
             .modelContainer(modelContainer)
             .environment(\.gameClock, clock)
@@ -110,7 +118,11 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         do {
             if let profile = try modelContainer.mainContext.fetch(descriptor).first,
                !LockdownPolicy.allows(.createQuest, isInLockdown: profile.isInLockdown) {
-                presentLockdownBlocksCreateQuestAlert()
+                globalAlerts.presentOKAlert(
+                    title: String(localized: L10n.Lockdown.createQuestBlockedTitle),
+                    message: String(localized: L10n.Lockdown.createQuestBlockedBody),
+                    okTitle: String(localized: L10n.Common.ok)
+                )
                 return
             }
         } catch {
@@ -202,6 +214,13 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
                 self.navigationController.popViewController(animated: true)
             }
         }
+        viewModel.onPresentLockdownTierBlockedAlert = { [weak self] in
+            self?.presentLockdownTierBlockedAlert()
+        }
+        viewModel.onPresentQuestLogInstructions = { [weak self] in
+            self?.presentQuestLogInstructionsAlert()
+        }
+        viewModel.onPresentRecoveryQuestCompleteConfirm = nil
         let root = QuestLogView(viewModel: viewModel)
             .modelContainer(modelContainer)
             .environment(\.gameClock, clock)
@@ -217,6 +236,13 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         let viewModel = QuestLogViewModel(modelContext: modelContainer.mainContext, gameClock: clock)
         viewModel.onLockdownClearedExit = { [weak self] in
             self?.popRecoveryQuestListAndPresentExitSuccess()
+        }
+        viewModel.onPresentLockdownTierBlockedAlert = { [weak self] in
+            self?.presentLockdownTierBlockedAlert()
+        }
+        viewModel.onPresentQuestLogInstructions = nil
+        viewModel.onPresentRecoveryQuestCompleteConfirm = { [weak self] questTitle, onConfirmed in
+            self?.presentRecoveryQuestCompleteConfirm(questTitle: questTitle, onConfirmed: onConfirmed)
         }
         let root = RecoveryQuestListView(viewModel: viewModel)
             .modelContainer(modelContainer)
@@ -240,37 +266,57 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
     }
 
     private func presentLockdownExitSuccessAlert() {
-        let title = String(localized: L10n.Lockdown.exitSuccessTitle)
-        let message = String(localized: L10n.Lockdown.exitSuccessMessage)
-        let acceptTitle = String(localized: L10n.Common.ok)
-        enqueueGlobalAlert { [weak self] finish in
-            guard let self else {
-                finish()
-                return
-            }
-            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: acceptTitle, style: .default) { _ in
-                finish()
-            })
-            self.presentOnIdleAlertHost(alert, animated: true, ifUnableToPresent: finish)
-        }
+        globalAlerts.presentOKAlert(
+            title: String(localized: L10n.Lockdown.exitSuccessTitle),
+            message: String(localized: L10n.Lockdown.exitSuccessMessage),
+            okTitle: String(localized: L10n.Common.ok)
+        )
     }
 
-    private func presentLockdownBlocksCreateQuestAlert() {
-        let title = String(localized: L10n.Lockdown.createQuestBlockedTitle)
-        let message = String(localized: L10n.Lockdown.createQuestBlockedBody)
-        let acceptTitle = String(localized: L10n.Common.ok)
-        enqueueGlobalAlert { [weak self] finish in
-            guard let self else {
-                finish()
-                return
-            }
-            let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: acceptTitle, style: .default) { _ in
-                finish()
-            })
-            self.presentOnIdleAlertHost(alert, animated: true, ifUnableToPresent: finish)
-        }
+    private func presentLockdownRecoveryInfoAlert(minHard: Int, minEpic: Int) {
+        globalAlerts.presentOKAlert(
+            title: String(localized: L10n.Lockdown.recoveryInfoAlertTitle),
+            message: L10n.Lockdown.recoveryInfoAlertMessage(minHard: minHard, minEpic: minEpic),
+            okTitle: String(localized: L10n.Common.ok)
+        )
+    }
+
+    private func presentLockdownTierBlockedAlert() {
+        globalAlerts.presentOKAlert(
+            title: String(localized: L10n.Lockdown.cannotCompleteEasyRegularTitle),
+            message: String(localized: L10n.Lockdown.cannotCompleteEasyRegularBody),
+            okTitle: String(localized: L10n.Common.ok)
+        )
+    }
+
+    private func presentQuestLogInstructionsAlert() {
+        globalAlerts.presentOKAlert(
+            title: String(localized: L10n.QuestLog.instructionsTitle),
+            message: String(localized: L10n.QuestLog.instructionsBody),
+            okTitle: String(localized: L10n.Common.ok)
+        )
+    }
+
+    private func presentRecoveryQuestCompleteConfirm(questTitle: String, onConfirmed: @escaping () -> Void) {
+        globalAlerts.presentConfirmAlert(
+            title: String(localized: L10n.Lockdown.recoveryCompleteConfirmTitle),
+            message: L10n.Lockdown.recoveryCompleteConfirmMessage(questTitle: questTitle),
+            cancelTitle: String(localized: L10n.Common.cancel),
+            actionTitle: String(localized: L10n.Lockdown.recoveryCompleteConfirmAction),
+            actionStyle: .default,
+            onAction: onConfirmed
+        )
+    }
+
+    private func presentLocalDataResetConfirmation(settingsViewModel: SettingsViewModel) {
+        globalAlerts.presentConfirmAlert(
+            title: String(localized: L10n.Settings.dataResetAlertTitle),
+            message: String(localized: L10n.Settings.dataResetAlertMessage),
+            cancelTitle: String(localized: L10n.Common.cancel),
+            actionTitle: String(localized: L10n.Settings.dataResetConfirm),
+            actionStyle: .destructive,
+            onAction: { settingsViewModel.performLocalDataReset() }
+        )
     }
 
     private func dismissCreateQuestIfPresented() {
@@ -286,7 +332,7 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         let title = String(localized: L10n.HUD.hpLossAlertTitle)
         let message = L10n.HUD.hpLossAlertMessage(totalLost: totalHPLost)
         let acceptTitle = String(localized: L10n.HUD.hpLossAlertAccept)
-        enqueueGlobalAlert { [weak self] finish in
+        globalAlerts.enqueue { [weak self] finish in
             guard let self else {
                 finish()
                 return
@@ -298,7 +344,7 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
                     finish()
                 }
             })
-            self.presentOnIdleAlertHost(alert, animated: true, ifUnableToPresent: finish)
+            globalAlerts.presentOnIdleHost(alert, animated: true, ifUnableToPresent: finish)
         }
     }
 
@@ -317,63 +363,6 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         } else {
             DispatchQueue.main.async { [weak self] in
                 _ = self?.navigationController.popToRootViewController(animated: true)
-            }
-        }
-    }
-
-    private static func topMostViewController(from root: UIViewController) -> UIViewController {
-        if let presented = root.presentedViewController {
-            return topMostViewController(from: presented)
-        }
-        if let nav = root as? UINavigationController, let visible = nav.visibleViewController {
-            return topMostViewController(from: visible)
-        }
-        if let tab = root as? UITabBarController, let selected = tab.selectedViewController {
-            return topMostViewController(from: selected)
-        }
-        return root
-    }
-
-    // MARK: - Global alert queue
-
-    /// One alert at a time; `builder` receives `finish`, which **must** run when the alert path is done (including button taps).
-    private func enqueueGlobalAlert(_ builder: @escaping (@escaping () -> Void) -> Void) {
-        globalAlertQueue.append(builder)
-        processGlobalAlertQueueIfNeeded()
-    }
-
-    private func processGlobalAlertQueueIfNeeded() {
-        guard !isProcessingGlobalAlertQueue, !globalAlertQueue.isEmpty else { return }
-        isProcessingGlobalAlertQueue = true
-        let next = globalAlertQueue.removeFirst()
-        DispatchQueue.main.async { [weak self] in
-            next {
-                self?.completeGlobalAlertQueueItem()
-            }
-        }
-    }
-
-    private func completeGlobalAlertQueueItem() {
-        isProcessingGlobalAlertQueue = false
-        processGlobalAlertQueueIfNeeded()
-    }
-
-    /// Presents when the top VC is not mid-transition; retries on the next run loop if needed.
-    private func presentOnIdleAlertHost(_ alert: UIAlertController, animated: Bool, ifUnableToPresent: @escaping () -> Void, idleRetryAttempt: Int = 0) {
-        let host = Self.topMostViewController(from: tabBarController)
-        if host.isBeingDismissed || host.isMovingToParent || host.isBeingPresented {
-            if idleRetryAttempt >= 24 {
-                ifUnableToPresent()
-                return
-            }
-            DispatchQueue.main.async { [weak self] in
-                self?.presentOnIdleAlertHost(alert, animated: animated, ifUnableToPresent: ifUnableToPresent, idleRetryAttempt: idleRetryAttempt + 1)
-            }
-            return
-        }
-        host.present(alert, animated: animated) {
-            if host.presentedViewController !== alert {
-                ifUnableToPresent()
             }
         }
     }

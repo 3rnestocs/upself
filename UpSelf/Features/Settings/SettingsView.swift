@@ -12,8 +12,6 @@ struct SettingsView: View {
     @Query(sort: \UserProfile.id) private var profiles: [UserProfile]
     @Bindable private var viewModel: SettingsViewModel
 
-    @State private var showResetDataConfirm = false
-
     init(viewModel: SettingsViewModel) {
         self.viewModel = viewModel
     }
@@ -80,7 +78,7 @@ struct SettingsView: View {
 
             Section {
                 Button {
-                    showResetDataConfirm = true
+                    viewModel.requestLocalDataResetConfirmation()
                 } label: {
                     Text(L10n.Settings.dataResetButton)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -176,17 +174,6 @@ struct SettingsView: View {
         .background(AppTheme.Colors.background)
         .onAppear {
             viewModel.onAppear()
-        }
-        .alert(
-            String(localized: L10n.Settings.dataResetAlertTitle),
-            isPresented: $showResetDataConfirm
-        ) {
-            Button(String(localized: L10n.Common.cancel), role: .cancel) {}
-            Button(String(localized: L10n.Settings.dataResetConfirm), role: .destructive) {
-                viewModel.performLocalDataReset()
-            }
-        } message: {
-            Text(L10n.Settings.dataResetAlertMessage)
         }
     }
 }

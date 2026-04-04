@@ -7,9 +7,6 @@
 
 import Foundation
 import SwiftData
-#if canImport(UIKit)
-import UIKit
-#endif
 
 @MainActor
 @Observable
@@ -18,22 +15,32 @@ final class QuestLogViewModel {
     private let modelContext: ModelContext
     private let gameClock: GameClock
 
-    /// Shown when the user tries to complete a tier blocked in lockdown (e.g. recovery flow edge cases).
-    var lockdownBlockedNotice: String?
-
     /// Set only for `QuestLogView`: pop the nav stack when lockdown engages (that screen must not stay visible).
     var onLockdownEngagedExit: (() -> Void)?
 
     /// Set only for `RecoveryQuestListView`: pop and show exit success when lockdown clears from a recovery completion.
     var onLockdownClearedExit: (() -> Void)?
 
+    /// System alert when the user tries to complete a tier blocked in lockdown (`AppCoordinator` + `GlobalUIKitAlertPresenter`).
+    var onPresentLockdownTierBlockedAlert: (() -> Void)?
+
+    /// Quest log instructions sheet copy as a system alert (`QuestLogView` only).
+    var onPresentQuestLogInstructions: (() -> Void)?
+
+    /// Recovery list: confirm before completing (`RecoveryQuestListView` only).
+    var onPresentRecoveryQuestCompleteConfirm: ((_ questTitle: String, _ onConfirmed: @escaping () -> Void) -> Void)?
+
     init(modelContext: ModelContext, gameClock: GameClock) {
         self.modelContext = modelContext
         self.gameClock = gameClock
     }
 
-    func clearLockdownNotice() {
-        lockdownBlockedNotice = nil
+    func presentQuestLogInstructions() {
+        onPresentQuestLogInstructions?()
+    }
+
+    func presentRecoveryQuestCompleteConfirm(questTitle: String, onConfirmed: @escaping () -> Void) {
+        onPresentRecoveryQuestCompleteConfirm?(questTitle, onConfirmed)
     }
 
     /// Awards XP for this quest’s tier, logs activity, sets `lastCompleted` (per calendar day for dailies).
@@ -58,7 +65,7 @@ final class QuestLogViewModel {
 
         if profile.isInLockdown {
             if !LockdownPolicy.allows(.completeQuest(tier: tier), isInLockdown: true) {
-                lockdownBlockedNotice = String(localized: L10n.Lockdown.cannotCompleteEasyRegularBody)
+                onPresentLockdownTierBlockedAlert?()
                 return
             }
         }
