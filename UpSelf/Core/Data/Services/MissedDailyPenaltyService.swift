@@ -48,7 +48,9 @@ enum MissedDailyPenaltyService {
         while day <= yesterdayStart {
             let dailies = profile.quests.filter(\.isDaily)
             if !dailies.isEmpty {
-                let allDailiesCompletedThatDay = dailies.allSatisfy { isQuestCompleted($0, on: day, calendar: calendar) }
+                let allDailiesCompletedThatDay = dailies.allSatisfy {
+                    Self.isQuestCompletedOnCalendarDay($0, dayStart: day, calendar: calendar)
+                }
                 if !allDailiesCompletedThatDay {
                     let loss = min(hpPerIncompleteDailyDay, profile.currentHP)
                     if loss > 0 {
@@ -70,7 +72,8 @@ enum MissedDailyPenaltyService {
         return totalHPLostThisRun
     }
 
-    private static func isQuestCompleted(_ quest: Quest, on dayStart: Date, calendar: Calendar) -> Bool {
+    /// Whether `quest.lastCompleted` falls on the same calendar day as `dayStart` (missed-daily evaluation).
+    static func isQuestCompletedOnCalendarDay(_ quest: Quest, dayStart: Date, calendar: Calendar) -> Bool {
         guard let completed = quest.lastCompleted else { return false }
         return calendar.isDate(completed, inSameDayAs: dayStart)
     }
