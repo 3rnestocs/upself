@@ -2,15 +2,22 @@
 //  LockdownEvaluationService.swift
 //  UpSelf
 //
+//  Single place that decides whether to **enter** lockdown from HP ratio.
+//  Exit is handled in `QuestLogViewModel` via `QuestCompletionService`.
+//
 
 import Foundation
 import SwiftData
 
-/// Single place that decides whether to **enter** lockdown from HP ratio. Exit is handled in `QuestLogViewModel` via quest completion.
-enum LockdownEvaluationService {
-
+protocol LockdownEvaluationServiceProtocol: AnyObject {
     @MainActor
-    static func evaluate(context: ModelContext, now: Date) throws {
+    func evaluate(context: ModelContext, now: Date) throws
+}
+
+@MainActor
+final class LockdownEvaluationService: LockdownEvaluationServiceProtocol {
+
+    func evaluate(context: ModelContext, now: Date) throws {
         var descriptor = FetchDescriptor<UserProfile>()
         descriptor.fetchLimit = 1
         guard let profile = try context.fetch(descriptor).first else { return }
