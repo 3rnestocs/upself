@@ -48,10 +48,13 @@ extension DependencyContainer {
 }
 
 private struct SupabaseServiceKey: InjectionKey {
-    static var currentValue: SupabaseServiceProtocol = SupabaseService(
-        url: AppConfig.supabaseURL,
-        anonKey: AppConfig.supabaseAnonKey
-    )
+    static var currentValue: SupabaseServiceProtocol = {
+        guard let url = AppConfig.supabaseURL else {
+            assertionFailure("Supabase URL not configured — copy Secrets.template.xcconfig → Secrets.xcconfig and assign it in Xcode project settings.")
+            return NoOpSupabaseService()
+        }
+        return SupabaseService(url: url, anonKey: AppConfig.supabaseAnonKey)
+    }()
 }
 
 import SwiftData
@@ -110,5 +113,42 @@ extension DependencyContainer {
     var localAppResetService: LocalAppResetServiceProtocol {
         get { DependencyContainer[LocalAppResetServiceKey.self] }
         set { DependencyContainer[LocalAppResetServiceKey.self] = newValue }
+    }
+}
+
+private struct ActivityLogServiceKey: InjectionKey {
+    static var currentValue: ActivityLogServiceProtocol = ActivityLogService(
+        gameClock: DependencyContainer[\.gameClock]
+    )
+}
+
+extension DependencyContainer {
+    var activityLogService: ActivityLogServiceProtocol {
+        get { DependencyContainer[ActivityLogServiceKey.self] }
+        set { DependencyContainer[ActivityLogServiceKey.self] = newValue }
+    }
+}
+
+private struct LockdownEvaluationServiceKey: InjectionKey {
+    static var currentValue: LockdownEvaluationServiceProtocol = LockdownEvaluationService()
+}
+
+extension DependencyContainer {
+    var lockdownEvaluationService: LockdownEvaluationServiceProtocol {
+        get { DependencyContainer[LockdownEvaluationServiceKey.self] }
+        set { DependencyContainer[LockdownEvaluationServiceKey.self] = newValue }
+    }
+}
+
+private struct QuestCompletionServiceKey: InjectionKey {
+    static var currentValue: QuestCompletionServiceProtocol = QuestCompletionService(
+        gameClock: DependencyContainer[\.gameClock]
+    )
+}
+
+extension DependencyContainer {
+    var questCompletionService: QuestCompletionServiceProtocol {
+        get { DependencyContainer[QuestCompletionServiceKey.self] }
+        set { DependencyContainer[QuestCompletionServiceKey.self] = newValue }
     }
 }
