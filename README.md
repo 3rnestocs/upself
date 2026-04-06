@@ -1,46 +1,226 @@
 # UpSelf: The Extreme Ownership RPG
 
-UpSelf is an iOS application that gamifies discipline. It transforms daily responsibilities into RPG quests, tracks real-world attributes (Logistics, Mastery, Charisma, Willpower, Vitality, Economy), and enforces accountability by restricting access to distracting apps (via Screen Time API) when the user's "HP" drops below critical levels.
+UpSelf is an iOS app that gamifies discipline and self-improvement. Daily responsibilities become RPG quests. Real-world attributes (Logistics, Mastery, Charisma, Willpower, Vitality, Economy) are tracked as character stats. Accountability is enforced by restricting distracting apps via the Screen Time API when the user's HP drops into the critical zone (lockdown).
+
+---
 
 ## Tech Stack
 
-- **UI Framework:** SwiftUI
-- **Routing:** UIKit (Coordinator Pattern)
-- **Local Persistence:** SwiftData (Offline-First, Single Source of Truth)
-- **Remote Database & Auth:** Supabase (PostgreSQL) — **client is included and registered in DI; background sync and auth are not wired in the app yet**
-- **OS Integrations:** FamilyControls (Screen Time API)
-- **Package Manager:** Swift Package Manager (SPM)
+| Concern | Technology |
+|---|---|
+| UI | SwiftUI |
+| Routing | UIKit — Coordinator Pattern |
+| Local Persistence | SwiftData (offline-first, single source of truth) |
+| Remote DB & Auth | Supabase (PostgreSQL) — client registered in DI; sync and auth not yet wired |
+| OS Integration | FamilyControls (Screen Time API) |
+| Package Manager | Swift Package Manager (SPM) |
 
-## Project Architecture: MVVM-C
+**Fixed package versions:**
 
-This project follows the Model-View-ViewModel-Coordinator pattern.
+| Package | Source | Version |
+|---|---|---|
+| `supabase-swift` | https://github.com/supabase/supabase-swift.git | `2.5.1` (exact) |
 
-1. **Views (SwiftUI):** Declarative UI. Primary navigation does not use `NavigationLink` / `NavigationStack` — the coordinator owns `UINavigationController` and pushes `UIHostingController` roots.
-2. **ViewModels:** Presentation logic and SwiftData mutations the feature owns. No UIKit routing; communicate navigation via callbacks to the coordinator.
-3. **Coordinators (UIKit):** Manage stacks, inject dependencies, and perform push/present.
-4. **Data flow:** Offline-first. Screens read from SwiftData. **Remote sync:** When implemented, it should live in services/repositories — not in Views or ViewModels (see `SupabaseService` / `DependencyContainer`).
+---
 
-## Configuration
+## Requirements
 
-- **Supabase URL and anon key** are defined in `UpSelf/Core/AppConfig.swift` for this repo snapshot. They feed `SupabaseService` via `DependencyContainer`. There is **no** runtime `.env` loader yet; if you add one later, update `AppConfig` (or a build setting) and keep **README** in sync.
+| Tool | Minimum Version |
+|---|---|
+| Xcode | 26.0+ (last upgrade check: 26.3) |
+| macOS (host) | 15.7 Sequoia |
+| iOS (deployment target) | 26.2 |
+| Swift | 5.0 |
+| Apple Developer Account | Required — FamilyControls entitlement needs a provisioned device |
 
-## Prerequisites
+> FamilyControls cannot be tested in the Simulator. A real device with an active developer provisioning profile is required to exercise lockdown flows.
 
-- Xcode 15.0+
-- iOS 17.0+ Target (see the Xcode project for the exact deployment version)
-- Active Apple Developer Account (Required for FamilyControls entitlement)
+---
 
 ## Setup & Installation
 
 1. Clone the repository.
-2. Open `UpSelf.xcodeproj`.
-3. Xcode will automatically resolve dependencies via SPM (`supabase-swift`).
-4. Build and run.
-
-Unit tests live under `UpSelfTests/` (e.g. lockdown policy, quest completion helpers, seed idempotency).
+2. Open `UpSelf.xcodeproj` in Xcode 26+.
+3. Xcode resolves SPM dependencies automatically (`supabase-swift 2.5.1`).
+4. Copy `Secrets.template.xcconfig` → `Secrets.xcconfig` (gitignored) and fill in `SUPABASE_URL` and `SUPABASE_ANON_KEY`. The build will succeed without this; Supabase calls are not yet wired at runtime.
+5. Select a real device target (or simulator for non-FamilyControls flows) and build.
 
 ---
 
-## AI Agent Context (.cursorrules)
+## Architecture: MVVM-C
 
-If you are an AI assistant helping with this project, strictly adhere to the rules in [`.cursorrules`](.cursorrules) at the repo root (coordinator-only primary navigation, `AppTheme` / `L10n`, no SwiftData migrations unless explicitly requested, etc.).
+```
+Features/
+├── Dashboard/          DashboardView + DashboardViewModel
+├── QuestLog/           QuestLogView + QuestLogViewModel + QuestLogRowCard
+├── CreateQuest/        CreateQuestView + CreateQuestViewModel
+├── Lockdown/           RecoveryQuestListView + RecoveryQuestListViewModel
+├── HistoryLog/         HistoryLogView + HistoryLogMessageFormatter
+└── Settings/           SettingsView + SettingsViewModel
+
+Core/
+├── AppCoordinator.swift          Root UIKit coordinator; owns UITabBarController
+├── AppConfig.swift               Reads Supabase credentials from Info.plist
+├── DependencyContainer.swift     Service locator + @Injected property wrapper
+├── GameClock.swift               Testable time source
+├── L10n.swift                    String constants (EN + ES via Localizable.xcstrings)
+├── Data/
+│   ├── Models/                   UserProfile, Quest, CharacterStat, ActivityLog,
+│   │                             CharacterAttribute, QuestRewardTier, ActivityLogKind,
+│   │                             StatProgression
+│   └── Services/                 DataSeedService, ActivityLogService,
+│                                 QuestCompletionService, LockdownEvaluationService,
+│                                 MissedDailyPenaltyService, LocalAppResetService
+├── Lockdown/
+│   ├── LockdownPolicy.swift      Pure rules: .allows(), .shouldClearLockdown()
+│   └── LockdownCapability.swift  Enum of capabilities gated during lockdown
+├── Network/
+│   └── SupabaseService.swift     Supabase client wrapper (registered, not yet called)
+└── Theme/
+    └── AppTheme.swift            All UI tokens (colors, fonts, spacing)
+```
+
+### Layer boundaries
+
+| Layer | Responsibility |
+|---|---|
+| **Views (SwiftUI)** | Declarative UI only. Read from `@Query` or ViewModel. Delegate all actions and navigation to closures. |
+| **ViewModels (`@Observable`)** | Presentation state, SwiftData mutations, navigation intent via closures. Never own a navigation stack. |
+| **Coordinators (UIKit)** | Own `UINavigationController` / `UITabBarController`. Push, present, pop, dismiss. Wrap SwiftUI in `UIHostingController`. |
+| **Services** | Domain logic: seeding, lockdown evaluation, activity logging, daily penalties, reset, quest completion. |
+| **Models (`@Model`)** | SwiftData entities. No business logic. |
+
+**Navigation rule:** Never use `NavigationLink`, `NavigationStack`, or `@Environment(\.presentationMode)` for primary navigation. All routing goes through `AppCoordinator`. Deferred pushes use `DispatchQueue.main.async` to avoid UIKit/SwiftUI event-loop conflicts.
+
+---
+
+## Dependency Injection
+
+`DependencyContainer` is a service locator. Access via subscript or `@Injected`:
+
+```swift
+let clock = DependencyContainer[\.gameClock]
+
+@Injected(\.modelContainer) var container: ModelContainer
+```
+
+All registered services are protocol-backed for testability:
+
+- `ModelContainer`
+- `SupabaseServiceProtocol`
+- `DataSeedServiceProtocol`
+- `GameClock`
+- `LocalAppResetServiceProtocol`
+- `ActivityLogServiceProtocol`
+- `LockdownEvaluationServiceProtocol`
+- `QuestCompletionServiceProtocol`
+
+---
+
+## Key Design Rules
+
+- **Offline-first.** SwiftData is the single source of truth. No Supabase calls from Views or ViewModels.
+- **No SwiftData migrations.** Schema changes require a fresh install. Do not add `migrationPlan`.
+- **`AppTheme` for all UI tokens.** No raw colors, fonts, or spacing values in views.
+- **`L10n` for all user-visible strings.** No raw string literals in views; EN and ES are both maintained.
+- **`GameClock` is the time source.** Inject it for anything time-dependent so tests can control time.
+- **`LockdownPolicy.allows(_:isInLockdown:)`** is the single gate for lockdown-gated capabilities. Do not branch on HP state in views.
+
+---
+
+## Core Mechanics
+
+### Quest Completion
+
+`QuestCompletionService` is the authoritative transaction:
+
+1. Eligibility check (lockdown tier gates, already-completed guard)
+2. XP grant → stat update → level-up check
+3. `ActivityLog` insert
+4. Lockdown recovery counter increment (if in lockdown)
+5. `ModelContext.save()` — or full rollback on failure
+
+Returns `QuestCompletionResult`: `.completed`, `.completedAndClearedLockdown`, `.tierBlockedInLockdown`, `.notEligible`.
+
+### Lockdown
+
+HP below 30% triggers lockdown. During lockdown:
+- Quest creation is blocked.
+- Easy/Regular tier completions are blocked.
+- Recovery requires Hard/Epic quests (default: 1 epic **or** 2 hard).
+
+Logic is split across three files:
+- `LockdownPolicy` — pure rules, no SwiftData
+- `LockdownEvaluationService` — detects HP change → entry trigger
+- `QuestCompletionService` — applies recovery completions and clears lockdown
+
+### Missed Daily Penalty
+
+`MissedDailyPenaltyService` runs on app launch and subtracts HP for missed daily quests based on calendar-day gaps. Uses `GameClock` so tests can simulate time passing.
+
+---
+
+## Testing
+
+Tests use Apple's **Testing** framework (`@Test`, `#expect`) — not XCTest. In-memory `ModelContainer` instances are created per test; no shared state.
+
+```bash
+# All tests
+xcodebuild test -scheme UpSelf -destination 'platform=iOS Simulator,name=iPhone 16'
+
+# Single suite
+xcodebuild test -scheme UpSelf -only-testing UpSelfTests/LockdownPolicyTests
+
+# Single test
+xcodebuild test -scheme UpSelf -only-testing UpSelfTests/LockdownPolicyTests/allows_createQuest_whenNotInLockdown
+```
+
+Existing suites: `LockdownPolicyTests`, `QuestCompletionHelpersTests`, `DataSeedServiceTests`, `MissedDailyPenaltyCalendarDayTests`, `HistoryLogMessageFormatterTests`.
+
+---
+
+## Secrets Management
+
+Supabase credentials flow through xcconfig → build settings → `Info.plist` → `AppConfig.swift`.
+
+1. Copy `Secrets.template.xcconfig` → `Secrets.xcconfig` (gitignored).
+2. Fill in `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
+3. `AppConfig.swift` reads them from `Info.plist` at runtime. Returns `nil` gracefully if missing; asserts only when `SupabaseService` is explicitly initialized.
+
+---
+
+## Existing Modules
+
+| Module | Status | Description |
+|---|---|---|
+| **Dashboard** | Shipped | Character stats, HP bar, active quests, XP progress |
+| **Quest Log** | Shipped | List of all quests; filters completed vs. ongoing |
+| **Create Quest** | Shipped | Form to create a new quest with tier, attribute, and schedule |
+| **Lockdown / Recovery** | Shipped | Blocked-state UI + recovery quest list with confirmation flow |
+| **History Log** | Shipped | Audit trail of all `ActivityLog` entries with human-readable messages |
+| **Settings** | Shipped | App reset, lockdown recovery thresholds configuration |
+| **Data Seeding** | Shipped | First-launch seed of `CharacterStat` rows and default quests |
+| **Missed Daily Penalty** | Shipped | On-launch HP subtraction for skipped daily quests |
+
+---
+
+## Planned / Suggested Future Modules
+
+| Module | Description |
+|---|---|
+| **Onboarding** | First-launch wizard: character name, avatar choice, attribute priority selection. Feeds `DataSeedService` with user-defined starting values. |
+| **Supabase Sync** | Background sync of `UserProfile`, `Quest`, and `ActivityLog` to Postgres. Conflict resolution strategy: last-write-wins per entity, with a sync-status indicator in Settings. |
+| **Authentication** | Supabase Auth (email/magic-link). Gates sync; local-only mode remains fully functional without an account. |
+| **Stat Detail / Progression** | Drill-down view per `CharacterAttribute` showing XP history, level milestones, and a sparkline of activity over time. |
+| **Quest Templates** | Pre-built quest packs per attribute (Fitness, Finance, Focus) that the user can import in one tap. Stored as JSON bundles, applied via `DataSeedService`. |
+| **Streak Tracker** | Daily login / quest-completion streaks per attribute. Bonus XP multiplier for sustained streaks; streak break penalty feeds into HP. |
+| **Notifications** | Local `UserNotifications` reminders for due daily quests and lockdown warnings. Configurable per-quest and globally in Settings. |
+| **Widget Extension** | Home/Lock screen widget showing HP bar, active quest count, and today's streak. Reads from a shared `AppGroup` SwiftData store. |
+| **Screen Time Deep Integration** | Granular blocked-app selection UI (beyond the current all-or-nothing FamilyControls gate). Per-attribute lockdown profiles. |
+| **Cloud Backup / Export** | One-tap export of `ActivityLog` and stat history as JSON or CSV for personal record-keeping, independent of Supabase sync. |
+
+---
+
+## AI Agent Context
+
+If you are an AI assistant working in this repo, read [`.cursorrules`](.cursorrules) and [`CLAUDE.md`](CLAUDE.md) at the repo root. They contain binding rules on navigation, theming, localization, SwiftData, and commit style that override any defaults.
