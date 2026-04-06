@@ -11,22 +11,75 @@ import Foundation
 @Observable
 final class DashboardViewModel {
 
-    /// Set by `AppCoordinator` to present the create-quest sheet.
+    // MARK: - Navigation callbacks (set by AppCoordinator)
+
     var onPresentCreateQuest: (() -> Void)?
-
-    /// Set by `AppCoordinator` to push the activity log screen.
     var onPresentHistoryLog: (() -> Void)?
-
-    /// Set by `AppCoordinator` to push the quest log screen.
     var onPresentQuestLog: (() -> Void)?
-
-    /// Set by `AppCoordinator` to push the lockdown recovery (hard/epic) list.
     var onPushRecoveryQuestList: (() -> Void)?
-
-    /// Set by `AppCoordinator` to show lockdown recovery requirements (system alert).
     var onPresentLockdownRecoveryInfo: ((_ minHard: Int, _ minEpic: Int) -> Void)?
 
+    // MARK: - Display state (populated by refresh)
+
+    var displayStats: [CharacterStat] = []
+    var dailyQuests: [Quest] = []
+    var completedDailiesToday: Int = 0
+    var hasOneOffQuestsOnly: Bool = false
+    var hasAnyQuests: Bool = false
+    var currentHP: Int = 0
+    var maxHP: Int = 100
+    var isInLockdown: Bool = false
+    var lockdownMinHardQuestsToClear: Int = 0
+    var lockdownMinEpicQuestsToClear: Int = 0
+    var createQuestAllowed: Bool = true
+    var dailyBriefNavAllowed: Bool = true
+
     init() {}
+
+    // MARK: - Data refresh
+
+    /// Called from the View's onAppear and onChange(of:) for each @Query array.
+    func refresh(profiles: [UserProfile], stats: [CharacterStat], quests: [Quest], clock: GameClock) {
+        guard let profile = profiles.first else {
+            displayStats = []
+            dailyQuests = []
+            completedDailiesToday = 0
+            hasOneOffQuestsOnly = false
+            hasAnyQuests = false
+            return
+        }
+        let id = profile.id
+        let ref = clock.now
+
+        displayStats = stats
+            .filter { $0.user?.id == id }
+            .sorted { a, b in
+                let ia = CharacterAttribute.allCases.firstIndex { $0.rawValue == a.kindRawValue } ?? Int.max
+                let ib = CharacterAttribute.allCases.firstIndex { $0.rawValue == b.kindRawValue } ?? Int.max
+                return ia < ib
+            }
+
+        let userQuests = quests.filter { $0.user?.id == id }
+        let dailies = userQuests
+            .filter(\.isDaily)
+            .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+
+        dailyQuests = dailies
+        completedDailiesToday = dailies.filter { $0.displayAsCompleted(referenceDate: ref) }.count
+        hasOneOffQuestsOnly = dailies.isEmpty && userQuests.contains { !$0.isDaily }
+        hasAnyQuests = !userQuests.isEmpty
+
+        currentHP = profile.currentHP
+        maxHP = profile.maxHP
+        isInLockdown = profile.isInLockdown
+        lockdownMinHardQuestsToClear = profile.lockdownMinHardQuestsToClear
+        lockdownMinEpicQuestsToClear = profile.lockdownMinEpicQuestsToClear
+
+        createQuestAllowed = LockdownPolicy.allows(.createQuest, isInLockdown: profile.isInLockdown)
+        dailyBriefNavAllowed = LockdownPolicy.allows(.dailyBrief, isInLockdown: profile.isInLockdown)
+    }
+
+    // MARK: - Actions
 
     func presentCreateQuest() {
         onPresentCreateQuest?()
