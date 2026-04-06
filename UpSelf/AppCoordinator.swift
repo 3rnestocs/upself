@@ -220,7 +220,6 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         viewModel.onPresentQuestLogInstructions = { [weak self] in
             self?.presentQuestLogInstructionsAlert()
         }
-        viewModel.onPresentRecoveryQuestCompleteConfirm = nil
         let root = QuestLogView(viewModel: viewModel)
             .modelContainer(modelContainer)
             .environment(\.gameClock, clock)
@@ -233,14 +232,13 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
 
     func pushRecoveryQuestList() {
         let clock = DependencyContainer[\.gameClock]
-        let viewModel = QuestLogViewModel(modelContext: modelContainer.mainContext, gameClock: clock)
+        let viewModel = RecoveryQuestListViewModel(modelContext: modelContainer.mainContext)
         viewModel.onLockdownClearedExit = { [weak self] in
             self?.popRecoveryQuestListAndPresentExitSuccess()
         }
         viewModel.onPresentLockdownTierBlockedAlert = { [weak self] in
             self?.presentLockdownTierBlockedAlert()
         }
-        viewModel.onPresentQuestLogInstructions = nil
         viewModel.onPresentRecoveryQuestCompleteConfirm = { [weak self] questTitle, onConfirmed in
             self?.presentRecoveryQuestCompleteConfirm(questTitle: questTitle, onConfirmed: onConfirmed)
         }
