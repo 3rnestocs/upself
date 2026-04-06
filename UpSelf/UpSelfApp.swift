@@ -41,7 +41,7 @@ private struct AppRootView: View {
                 // Defer past this run loop so `UIHostingController` / tab roots can attach to the key window
                 // before any `UIAlertController` presentation (avoids “first alert is slow”, works smooth after).
                 DispatchQueue.main.async {
-                    let context = ModelContext(DependencyContainer[\.modelContainer])
+                    let context = DependencyContainer[\.modelContainer].mainContext
                     do {
                         let lost = try MissedDailyPenaltyService.evaluateIfNeeded(
                             context: context,

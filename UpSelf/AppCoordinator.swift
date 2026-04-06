@@ -207,11 +207,21 @@ class AppCoordinator: NSObject, UINavigationControllerDelegate, UITabBarControll
         let viewModel = QuestLogViewModel(modelContext: modelContainer.mainContext, gameClock: clock)
         // Defer pop: synchronous navigation from SwiftUI `onAppear` / `onChange` can tear down
         // `UIHostingController` mid–update-cycle and cause intermittent crashes with Observation/@Query.
+        // Also wait for any in-progress push animation to finish before popping: a pop during a push
+        // animation corrupts UIKit's nav-stack array and produces `__NSArrayM insertObject:atIndex: nil`.
         viewModel.onLockdownEngagedExit = { [weak self] in
             DispatchQueue.main.async {
                 guard let self else { return }
                 guard self.navigationController.viewControllers.count > 1 else { return }
-                self.navigationController.popViewController(animated: true)
+                if let coordinator = self.navigationController.transitionCoordinator {
+                    _ = coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+                        guard let self,
+                              self.navigationController.viewControllers.count > 1 else { return }
+                        self.navigationController.popViewController(animated: true)
+                    }
+                } else {
+                    self.navigationController.popViewController(animated: true)
+                }
             }
         }
         viewModel.onPresentLockdownTierBlockedAlert = { [weak self] in
