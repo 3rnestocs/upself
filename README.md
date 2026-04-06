@@ -189,35 +189,9 @@ Supabase credentials flow through xcconfig → build settings → `Info.plist` �
 
 ---
 
-## Existing Modules
+## Roadmap & Implementation Status
 
-| Module | Status | Description |
-|---|---|---|
-| **Dashboard** | Shipped | Character stats, HP bar, active quests, XP progress |
-| **Quest Log** | Shipped | List of all quests; filters completed vs. ongoing |
-| **Create Quest** | Shipped | Form to create a new quest with tier, attribute, and schedule |
-| **Lockdown / Recovery** | Shipped | Blocked-state UI + recovery quest list with confirmation flow |
-| **History Log** | Shipped | Audit trail of all `ActivityLog` entries with human-readable messages |
-| **Settings** | Shipped | App reset, lockdown recovery thresholds configuration |
-| **Data Seeding** | Shipped | First-launch seed of `CharacterStat` rows and default quests |
-| **Missed Daily Penalty** | Shipped | On-launch HP subtraction for skipped daily quests |
-
----
-
-## Planned / Suggested Future Modules
-
-| Module | Description |
-|---|---|
-| **Onboarding** | First-launch wizard: character name, avatar choice, attribute priority selection. Feeds `DataSeedService` with user-defined starting values. |
-| **Supabase Sync** | Background sync of `UserProfile`, `Quest`, and `ActivityLog` to Postgres. Conflict resolution strategy: last-write-wins per entity, with a sync-status indicator in Settings. |
-| **Authentication** | Supabase Auth (email/magic-link). Gates sync; local-only mode remains fully functional without an account. |
-| **Stat Detail / Progression** | Drill-down view per `CharacterAttribute` showing XP history, level milestones, and a sparkline of activity over time. |
-| **Quest Templates** | Pre-built quest packs per attribute (Fitness, Finance, Focus) that the user can import in one tap. Stored as JSON bundles, applied via `DataSeedService`. |
-| **Streak Tracker** | Daily login / quest-completion streaks per attribute. Bonus XP multiplier for sustained streaks; streak break penalty feeds into HP. |
-| **Notifications** | Local `UserNotifications` reminders for due daily quests and lockdown warnings. Configurable per-quest and globally in Settings. |
-| **Widget Extension** | Home/Lock screen widget showing HP bar, active quest count, and today's streak. Reads from a shared `AppGroup` SwiftData store. |
-| **Screen Time Deep Integration** | Granular blocked-app selection UI (beyond the current all-or-nothing FamilyControls gate). Per-attribute lockdown profiles. |
-| **Cloud Backup / Export** | One-tap export of `ActivityLog` and stat history as JSON or CSV for personal record-keeping, independent of Supabase sync. |
+See [`IMPLEMENTATION.md`](IMPLEMENTATION.md) for a detailed roadmap of shipped features and planned development phases.
 
 ---
 

@@ -6,33 +6,8 @@ This file contains **Cursor-specific guidance** only.
 
 ---
 
-## Cursor-Specific Behavior
+## Cursor-Specific Features
 
-- **Build & Test:** Use Xcode for building and testing. Do not invoke `xcodebuild`, `swift build`, or other automated builds in the Cursor flow unless the user explicitly asks.
-- **Assume manual Xcode workflow.** Describe what to verify in Xcode rather than running builds yourself.
-- **Codebase Exploration:** Cursor's code intelligence is available; use it to navigate and understand the codebase quickly.
+- **Codebase Exploration:** Leverage Cursor's code intelligence (autocomplete, navigation, symbol search) to explore and understand the codebase quickly.
 
----
-
-## Referencing Universal Guidelines
-
-All **architecture, design rules, Git practices, and code style** are documented in [`AI_AGENT_GUIDELINES.md`](AI_AGENT_GUIDELINES.md):
-
-- MVVM-C pattern (Views / ViewModels / Coordinators)
-- Navigation rules (no `NavigationLink`, all routing via `AppCoordinator`)
-- Theme & visuals (`AppTheme` only)
-- Localization (`L10n` + `Localizable.xcstrings`)
-- Dependency injection (`DependencyContainer` + `@Injected`)
-- SwiftData rules (no migrations, offline-first)
-- Git branches and commit style (`type(scope): summary`)
-- Folder structure and naming conventions
-
-Implicitly follow these rules when making code changes in UpSelf.
-
----
-
-## Secrets & Config
-
-See [`AI_AGENT_GUIDELINES.md`](AI_AGENT_GUIDELINES.md) under **Secrets Management**.
-
-Copy `Secrets.template.xcconfig` → `Secrets.xcconfig` (gitignored) and fill in `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
+Build and testing assumptions are documented in [`AI_AGENT_GUIDELINES.md`](AI_AGENT_GUIDELINES.md) under **Build & Testing**.

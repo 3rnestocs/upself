@@ -204,14 +204,24 @@ Views receive data from VMs, trigger actions via closures, never own navigation.
 
 ---
 
-## Testing
+## Build & Testing
+
+**This is a native iOS project.** Build and run via Xcode — there is no Makefile, fastlane, or npm.
+
+**Do not invoke `xcodebuild`, `swift build`, or other automated builds** unless the user explicitly asks. Assume the user builds, runs, and tests **manually in Xcode**. Prefer describing what to verify in Xcode rather than running builds yourself.
+
+### Test Framework & Suites
 
 Tests use Apple's **Testing** framework (`@Test`, `#expect`) — **not** XCTest.
 
 - In-memory `ModelContainer` per test; no shared state.
 - Existing suites: `LockdownPolicyTests`, `QuestCompletionHelpersTests`, `DataSeedServiceTests`, `MissedDailyPenaltyCalendarDayTests`, `HistoryLogMessageFormatterTests`.
 
-See `CLAUDE.md` for command-line test invocations.
+**CLI reference** (if the user runs tests):
+```bash
+xcodebuild test -scheme UpSelf -destination 'platform=iOS Simulator,name=iPhone 16'
+xcodebuild test -scheme UpSelf -only-testing UpSelfTests/LockdownPolicyTests
+```
 
 ---
 
@@ -273,3 +283,9 @@ Supabase credentials flow: xcconfig → build settings → `Info.plist` → `App
 - [ ] SwiftData reads in Views via `@Query` where appropriate.
 - [ ] If committing: small, scoped commits with one-line subjects (`type(scope): summary`).
 - [ ] No new SwiftData migration / legacy-store logic — schema changes = fresh install.
+
+---
+
+## Project Status & Roadmap
+
+See [`IMPLEMENTATION.md`](IMPLEMENTATION.md) for the current status of shipped features, planned development phases, and architectural readiness notes.
