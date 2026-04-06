@@ -17,8 +17,16 @@ protocol SupabaseServiceProtocol {
 // La implementación real
 final class SupabaseService: SupabaseServiceProtocol {
     let client: SupabaseClient
-    
+
     init(url: URL, anonKey: String) {
         self.client = SupabaseClient(supabaseURL: url, supabaseKey: anonKey)
+    }
+}
+
+/// Fallback used when Secrets.xcconfig is not configured (missing URL).
+/// Prevents a crash while making the misconfiguration obvious via assertionFailure.
+final class NoOpSupabaseService: SupabaseServiceProtocol {
+    var client: SupabaseClient {
+        fatalError("NoOpSupabaseService: Supabase is not configured. See Secrets.template.xcconfig.")
     }
 }
