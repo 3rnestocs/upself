@@ -59,7 +59,9 @@ enum ContentSizedSheet {
             content
                 .onPreferenceChange(HeightPreferenceKey.self) { contentHeight in
                     guard contentHeight > 1 else { return }
-                    let screenHeight = UIScreen.main.bounds.height
+                    let screenHeight = UIApplication.shared.connectedScenes
+                        .compactMap { $0 as? UIWindowScene }
+                        .first?.screen.bounds.height ?? 852
                     let maxDetent = screenHeight * configuration.maximumHeightFractionOfScreen
                     let target = min(contentHeight + configuration.extraChromeHeight, maxDetent)
                     detentHeight = max(target, configuration.minimumDetentHeight)
@@ -105,7 +107,9 @@ enum ContentSizedSheet {
         }
 
         func resolvedDetentHeight(maximumDetent: CGFloat) -> CGFloat {
-            let screenCap = UIScreen.main.bounds.height * configuration.maximumHeightFractionOfScreen
+            let screenCap = (UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .first?.screen.bounds.height ?? 852) * configuration.maximumHeightFractionOfScreen
             let cap = min(maximumDetent, screenCap)
             let raw: CGFloat
             if measuredContentHeight > 1 {

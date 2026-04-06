@@ -23,7 +23,6 @@ protocol QuestCompletionServiceProtocol: AnyObject {
     func complete(_ quest: Quest, context: ModelContext) throws -> QuestCompletionResult
 }
 
-@MainActor
 final class QuestCompletionService: QuestCompletionServiceProtocol {
 
     private let gameClock: GameClock
@@ -37,6 +36,7 @@ final class QuestCompletionService: QuestCompletionServiceProtocol {
         self.activityLogService = activityLogService
     }
 
+    @MainActor
     func complete(_ quest: Quest, context: ModelContext) throws -> QuestCompletionResult {
         let ref = gameClock.now
 

@@ -14,9 +14,9 @@ protocol LockdownEvaluationServiceProtocol: AnyObject {
     func evaluate(context: ModelContext, now: Date) throws
 }
 
-@MainActor
 final class LockdownEvaluationService: LockdownEvaluationServiceProtocol {
 
+    @MainActor
     func evaluate(context: ModelContext, now: Date) throws {
         var descriptor = FetchDescriptor<UserProfile>()
         descriptor.fetchLimit = 1

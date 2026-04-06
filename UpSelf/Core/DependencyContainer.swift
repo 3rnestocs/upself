@@ -13,7 +13,7 @@ protocol InjectionKey {
 }
 
 struct DependencyContainer {
-    private static var current = DependencyContainer()
+    nonisolated(unsafe) private static var current = DependencyContainer()
     
     static subscript<T>(_ key: T.Type) -> T.Value where T: InjectionKey {
         get { key.currentValue }
