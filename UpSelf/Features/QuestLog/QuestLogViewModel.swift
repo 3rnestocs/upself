@@ -2,7 +2,7 @@
 //  QuestLogViewModel.swift
 //  UpSelf
 //
-//  Quest list and completion; navigation stays in AppCoordinator.
+//  Quest list and completion; routing stays in AppCoordinator.
 //
 
 import Foundation
@@ -14,124 +14,75 @@ final class QuestLogViewModel {
 
     private let modelContext: ModelContext
     private let gameClock: GameClock
+    private let completionService: QuestCompletionServiceProtocol
 
-    /// Set only for `QuestLogView`: pop the nav stack when lockdown engages (that screen must not stay visible).
+    /// Pop the nav stack when lockdown engages (this screen must not stay visible while in lockdown).
     var onLockdownEngagedExit: (() -> Void)?
 
-    /// Set only for `RecoveryQuestListView`: pop and show exit success when lockdown clears from a recovery completion.
-    var onLockdownClearedExit: (() -> Void)?
-
-    /// System alert when the user tries to complete a tier blocked in lockdown (`AppCoordinator` + `GlobalUIKitAlertPresenter`).
+    /// System alert when the user tries to complete a tier blocked in lockdown.
     var onPresentLockdownTierBlockedAlert: (() -> Void)?
 
-    /// Quest log instructions sheet copy as a system alert (`QuestLogView` only).
+    /// Quest log instructions presented as a system alert.
     var onPresentQuestLogInstructions: (() -> Void)?
 
-    /// Recovery list: confirm before completing (`RecoveryQuestListView` only).
-    var onPresentRecoveryQuestCompleteConfirm: ((_ questTitle: String, _ onConfirmed: @escaping () -> Void) -> Void)?
+    // MARK: - Display state
 
-    init(modelContext: ModelContext, gameClock: GameClock) {
+    /// Filtered and sorted quest list for the current filter tab. Populated by `refreshQuests(...)`.
+    var visibleQuests: [Quest] = []
+
+    init(
+        modelContext: ModelContext,
+        gameClock: GameClock,
+        completionService: QuestCompletionServiceProtocol = DependencyContainer[\.questCompletionService]
+    ) {
         self.modelContext = modelContext
         self.gameClock = gameClock
+        self.completionService = completionService
     }
+
+    // MARK: - Data refresh
+
+    func refreshQuests(allQuests: [Quest], profiles: [UserProfile], filter: QuestLogFilter, clock: GameClock) {
+        guard let id = profiles.first?.id else {
+            visibleQuests = []
+            return
+        }
+        let ref = clock.now
+        let subset = allQuests.filter { quest in
+            guard quest.user?.id == id else { return false }
+            switch filter {
+            case .daily:  return quest.isDaily
+            case .oneOff: return !quest.isDaily
+            }
+        }
+        visibleQuests = subset.sorted { a, b in
+            let ad = a.displayAsCompleted(referenceDate: ref)
+            let bd = b.displayAsCompleted(referenceDate: ref)
+            if ad != bd { return !ad && bd }
+            return a.title.localizedCaseInsensitiveCompare(b.title) == .orderedAscending
+        }
+    }
+
+    // MARK: - Navigation
 
     func presentQuestLogInstructions() {
         onPresentQuestLogInstructions?()
     }
 
-    func presentRecoveryQuestCompleteConfirm(questTitle: String, onConfirmed: @escaping () -> Void) {
-        onPresentRecoveryQuestCompleteConfirm?(questTitle, onConfirmed)
-    }
+    // MARK: - Quest completion
 
-    /// Awards XP for this quest’s tier, logs activity, sets `lastCompleted` (per calendar day for dailies).
+    /// Delegates to `QuestCompletionService` and routes the result to the appropriate callback.
     func completePersistedQuest(_ quest: Quest) {
-        let ref = gameClock.now
-        let canProceed: Bool = {
-            guard let profile = quest.user, profile.isInLockdown else {
-                return quest.canComplete(referenceDate: ref)
-            }
-            guard let tier = QuestRewardTier(xp: quest.rewardXP), tier == .hard || tier == .epic else {
-                return quest.canComplete(referenceDate: ref)
-            }
-            return quest.recoveryListCanComplete(referenceDate: ref, lockdownEpisodeStart: profile.lockdownEpisodeStart)
-        }()
-        guard canProceed else { return }
-        guard let attribute = quest.statKind,
-              let profile = quest.user,
-              let stat = profile.stats.first(where: { $0.kindRawValue == attribute.rawValue })
-        else { return }
-
-        let tier = QuestRewardTier(xp: quest.rewardXP) ?? .easy
-
-        if profile.isInLockdown {
-            if !LockdownPolicy.allows(.completeQuest(tier: tier), isInLockdown: true) {
-                onPresentLockdownTierBlockedAlert?()
-                return
-            }
-        }
-
-        let delta = tier.xp
-        let previousCompleted = quest.lastCompleted
-        let previousEpic = profile.lockdownEpicCompletions
-        let previousHard = profile.lockdownHardCompletions
-        let previousInLockdown = profile.isInLockdown
-        let previousLockdownEpisodeStart = profile.lockdownEpisodeStart
-        let previousHP = profile.currentHP
-        var clearedLockdownThisTransaction = false
-
-        stat.currentXP += delta
-        guard let insertedActivityLog = ActivityLogService.insertQuestXPGain(
-            context: modelContext,
-            stat: stat,
-            tier: tier,
-            questTitle: quest.title
-        ) else {
-            stat.currentXP -= delta
-            return
-        }
-        quest.lastCompleted = ref
-
-        if profile.isInLockdown {
-            LockdownPolicy.repairInvalidRecoveryMinimums(profile)
-
-            switch tier {
-            case .hard:
-                profile.lockdownHardCompletions += 1
-            case .epic:
-                profile.lockdownEpicCompletions += 1
-            case .easy, .regular:
-                break
-            }
-
-            if LockdownPolicy.shouldClearLockdown(
-                epicCompletions: profile.lockdownEpicCompletions,
-                hardCompletions: profile.lockdownHardCompletions,
-                minEpicToClear: profile.lockdownMinEpicQuestsToClear,
-                minHardToClear: profile.lockdownMinHardQuestsToClear
-            ) {
-                profile.isInLockdown = false
-                profile.lockdownEpicCompletions = 0
-                profile.lockdownHardCompletions = 0
-                profile.lockdownEpisodeStart = nil
-                profile.currentHP = profile.maxHP
-                clearedLockdownThisTransaction = true
-            }
-        }
-
-        do {
-            try modelContext.save()
-            if clearedLockdownThisTransaction {
-                onLockdownClearedExit?()
-            }
-        } catch {
-            modelContext.delete(insertedActivityLog)
-            stat.currentXP -= delta
-            quest.lastCompleted = previousCompleted
-            profile.lockdownEpicCompletions = previousEpic
-            profile.lockdownHardCompletions = previousHard
-            profile.isInLockdown = previousInLockdown
-            profile.lockdownEpisodeStart = previousLockdownEpisodeStart
-            profile.currentHP = previousHP
+        guard let result = try? completionService.complete(quest, context: modelContext) else { return }
+        switch result {
+        case .completed, .completedAndClearedLockdown:
+            // Lockdown cannot clear from QuestLog (blocked tiers prevent it); .completedAndClearedLockdown
+            // is handled by RecoveryQuestListViewModel.
+            break
+        case .tierBlockedInLockdown:
+            onPresentLockdownTierBlockedAlert?()
+        case .notEligible:
+            break
         }
     }
 }

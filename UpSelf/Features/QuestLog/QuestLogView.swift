@@ -11,7 +11,8 @@ import SwiftUI
 import UIKit
 #endif
 
-private enum QuestLogFilter: Hashable {
+// Defined here (not private) so QuestLogViewModel can reference it.
+enum QuestLogFilter: Hashable {
     case daily
     case oneOff
 }
@@ -32,9 +33,6 @@ struct QuestLogView: View {
 
     private var profile: UserProfile? { profiles.first }
 
-    // Estado local que guarda la lista ya filtrada y ordenada.
-    @State private var visibleQuests: [Quest] = []
-
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Picker("", selection: $filter) {
@@ -44,7 +42,7 @@ struct QuestLogView: View {
             .pickerStyle(.segmented)
             .accessibilityLabel(L10n.QuestLog.filterAccessibility)
 
-            if visibleQuests.isEmpty {
+            if viewModel.visibleQuests.isEmpty {
                 Text(L10n.QuestLog.empty)
                     .font(AppTheme.Fonts.ui(.subheadline))
                     .foregroundStyle(AppTheme.Colors.secondaryLabel)
@@ -52,7 +50,7 @@ struct QuestLogView: View {
                     .padding(.vertical, AppTheme.Spacing.lg)
             } else {
                 List {
-                    ForEach(visibleQuests, id: \.id) { quest in
+                    ForEach(viewModel.visibleQuests, id: \.id) { quest in
                         questRow(quest)
                             .listRowInsets(EdgeInsets(
                                 top: AppTheme.Spacing.xs,
@@ -72,7 +70,7 @@ struct QuestLogView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(AppTheme.Colors.background)
         .onAppear {
-            updateQuests() // Calcula cuando entras a la pantalla
+            viewModel.refreshQuests(allQuests: allQuests, profiles: profiles, filter: filter, clock: gameClock)
             if profile?.isInLockdown == true {
                 viewModel.onLockdownEngagedExit?()
             }
@@ -82,11 +80,11 @@ struct QuestLogView: View {
                 viewModel.onLockdownEngagedExit?()
             }
         }
-        .onChange(of: allQuests) { _, _ in
-            updateQuests() // Recalcula si creas o completas una misión
+        .onChange(of: allQuests) { _, q in
+            viewModel.refreshQuests(allQuests: q, profiles: profiles, filter: filter, clock: gameClock)
         }
-        .onChange(of: filter) { _, _ in
-            updateQuests() // Recalcula si cambias la pestaña (Diarias/Puntuales)
+        .onChange(of: filter) { _, f in
+            viewModel.refreshQuests(allQuests: allQuests, profiles: profiles, filter: f, clock: gameClock)
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -109,30 +107,6 @@ struct QuestLogView: View {
         let q = quest
         DispatchQueue.main.async {
             viewModel.completePersistedQuest(q)
-        }
-    }
-
-    private func updateQuests() {
-        guard let id = profile?.id else { return }
-        let ref = gameClock.now // Tomamos la hora una sola vez
-        
-        // 1. Filtrar
-        let subset = allQuests.filter { quest in
-            // Al hacer esto aquí, obligamos a SwiftData a resolver el "Fault"
-            // antes de que el usuario interactúe.
-            guard quest.user?.id == id else { return false }
-            switch filter {
-            case .daily: return quest.isDaily
-            case .oneOff: return !quest.isDaily
-            }
-        }
-        
-        // 2. Ordenar y asignar al estado de la vista
-        visibleQuests = subset.sorted { a, b in
-            let ad = a.displayAsCompleted(referenceDate: ref)
-            let bd = b.displayAsCompleted(referenceDate: ref)
-            if ad != bd { return !ad && bd }
-            return a.title.localizedCaseInsensitiveCompare(b.title) == .orderedAscending
         }
     }
 
