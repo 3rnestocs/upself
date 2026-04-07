@@ -17,45 +17,17 @@ struct RecoveryQuestListView: View {
 
     @Environment(\.gameClock) private var gameClock
 
-    private let viewModel: QuestLogViewModel
+    private let viewModel: RecoveryQuestListViewModel
 
-    init(viewModel: QuestLogViewModel) {
+    init(viewModel: RecoveryQuestListViewModel) {
         self.viewModel = viewModel
     }
 
     private var profile: UserProfile? { profiles.first }
 
-    private var recoveryEpicQuests: [Quest] {
-        recoveryQuestsFiltered(tier: .epic)
-    }
-
-    private var recoveryHardQuests: [Quest] {
-        recoveryQuestsFiltered(tier: .hard)
-    }
-
-    private var hasAnyRecoveryQuest: Bool {
-        !recoveryEpicQuests.isEmpty || !recoveryHardQuests.isEmpty
-    }
-
-    private func recoveryQuestsFiltered(tier: QuestRewardTier) -> [Quest] {
-        guard let id = profile?.id else { return [] }
-        let ref = gameClock.now
-        let episodeStart = profile?.lockdownEpisodeStart
-        return allQuests.filter { quest in
-            guard quest.user?.id == id else { return false }
-            return quest.rewardTier == tier
-        }
-        .sorted { a, b in
-            let ad = a.recoveryListDisplayCompleted(referenceDate: ref, lockdownEpisodeStart: episodeStart)
-            let bd = b.recoveryListDisplayCompleted(referenceDate: ref, lockdownEpisodeStart: episodeStart)
-            if ad != bd { return !ad && bd }
-            return a.title.localizedCaseInsensitiveCompare(b.title) == .orderedAscending
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-            if !hasAnyRecoveryQuest {
+            if !viewModel.hasAnyQuest {
                 Text(L10n.Lockdown.recoveryEmpty)
                     .font(AppTheme.Fonts.ui(.subheadline))
                     .foregroundStyle(AppTheme.Colors.secondaryLabel)
@@ -63,9 +35,9 @@ struct RecoveryQuestListView: View {
                     .padding(.vertical, AppTheme.Spacing.lg)
             } else {
                 List {
-                    if !recoveryEpicQuests.isEmpty {
+                    if !viewModel.epicQuests.isEmpty {
                         Section {
-                            ForEach(recoveryEpicQuests, id: \.id) { quest in
+                            ForEach(viewModel.epicQuests, id: \.id) { quest in
                                 recoveryQuestRow(quest)
                                     .listRowInsets(EdgeInsets(
                                         top: AppTheme.Spacing.xs,
@@ -87,9 +59,9 @@ struct RecoveryQuestListView: View {
                             .textCase(nil)
                         }
                     }
-                    if !recoveryHardQuests.isEmpty {
+                    if !viewModel.hardQuests.isEmpty {
                         Section {
-                            ForEach(recoveryHardQuests, id: \.id) { quest in
+                            ForEach(viewModel.hardQuests, id: \.id) { quest in
                                 recoveryQuestRow(quest)
                                     .listRowInsets(EdgeInsets(
                                         top: AppTheme.Spacing.xs,
@@ -118,7 +90,16 @@ struct RecoveryQuestListView: View {
         }
         .padding(AppTheme.Spacing.md)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(AppTheme.Colors.background)
+        .background(AppTheme.Colors.background.ignoresSafeArea())
+        .onAppear {
+            viewModel.refresh(allQuests: allQuests, profiles: profiles, clock: gameClock)
+        }
+        .onChange(of: allQuests) { _, q in
+            viewModel.refresh(allQuests: q, profiles: profiles, clock: gameClock)
+        }
+        .onChange(of: profiles) { _, p in
+            viewModel.refresh(allQuests: allQuests, profiles: p, clock: gameClock)
+        }
     }
 
     private func requestComplete(_ quest: Quest) {
@@ -128,8 +109,8 @@ struct RecoveryQuestListView: View {
         let questID = quest.id
         viewModel.presentRecoveryQuestCompleteConfirm(questTitle: quest.title) {
             DispatchQueue.main.async {
-                guard let q = allQuests.first(where: { $0.id == questID }) else { return }
-                viewModel.completePersistedQuest(q)
+                guard let q = self.allQuests.first(where: { $0.id == questID }) else { return }
+                self.viewModel.completePersistedQuest(q)
             }
         }
     }
@@ -140,7 +121,7 @@ struct RecoveryQuestListView: View {
         let episodeStart = profile?.lockdownEpisodeStart
         let done = quest.recoveryListDisplayCompleted(referenceDate: ref, lockdownEpisodeStart: episodeStart)
         let canComplete = quest.recoveryListCanComplete(referenceDate: ref, lockdownEpisodeStart: episodeStart)
-        let tierBlockedInLockdown = isTierBlockedInLockdown(quest)
+        let tierBlockedInLockdown = viewModel.isTierBlockedInLockdown(quest, profile: profile)
         let content = QuestLogRowCard(
             quest: quest,
             done: done,
@@ -165,10 +146,5 @@ struct RecoveryQuestListView: View {
         } else {
             content
         }
-    }
-
-    private func isTierBlockedInLockdown(_ quest: Quest) -> Bool {
-        guard let profile, profile.isInLockdown, let tier = quest.rewardTier else { return false }
-        return !LockdownPolicy.allows(.completeQuest(tier: tier), isInLockdown: true)
     }
 }

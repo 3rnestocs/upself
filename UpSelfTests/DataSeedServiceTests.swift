@@ -29,6 +29,6 @@ struct DataSeedServiceTests {
         let stats = try context.fetch(FetchDescriptor<CharacterStat>())
         #expect(stats.count == CharacterAttribute.allCases.count)
         let quests = try context.fetch(FetchDescriptor<Quest>())
-        #expect(!quests.isEmpty)
+        #expect(quests.isEmpty)
     }
 }

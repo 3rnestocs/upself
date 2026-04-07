@@ -12,8 +12,6 @@ struct CreateQuestView: View {
     @Bindable var viewModel: CreateQuestViewModel
     @FocusState private var isTitleFieldFocused: Bool
 
-    @Environment(\.contentSizedSheetUIKitDetentBridge) private var contentSizedSheetUIKitDetentBridge
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
@@ -68,7 +66,6 @@ struct CreateQuestView: View {
             }
         )
         .background(AppTheme.Colors.background.ignoresSafeArea())
-        .contentSizedSheetUIKitDetentBridge(contentSizedSheetUIKitDetentBridge)
     }
 
     private var headerBar: some View {

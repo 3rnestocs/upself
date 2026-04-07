@@ -36,14 +36,16 @@ enum MissedDailyPenaltyService {
             guard let twoDaysAgoStart = calendar.date(byAdding: .day, value: -2, to: todayStart) else { return 0 }
             profile.lastMissedDailyEvaluationDate = twoDaysAgoStart
             profile.lastAppOpen = now
-            try LockdownEvaluationService.evaluate(context: context, now: now)
+            try DependencyContainer[\.lockdownEvaluationService].evaluate(context: context, now: now)
             try context.save()
             return 0
         }
 
         var totalHPLostThisRun = 0
-        var lastEval = calendar.startOfDay(for: profile.lastMissedDailyEvaluationDate!)
-        var day = calendar.date(byAdding: .day, value: 1, to: lastEval)!
+        // `lastMissedDailyEvaluationDate` is guaranteed non-nil here: the nil branch above returns early.
+        let lastEval = calendar.startOfDay(for: profile.lastMissedDailyEvaluationDate!)
+        guard let initialDay = calendar.date(byAdding: .day, value: 1, to: lastEval) else { return 0 }
+        var day = initialDay
 
         while day <= yesterdayStart {
             let dailies = profile.quests.filter(\.isDaily)
@@ -58,16 +60,17 @@ enum MissedDailyPenaltyService {
                         totalHPLostThisRun += loss
                         let dayLabel = day.formatted(date: .abbreviated, time: .omitted)
                         let message = L10n.ActivityLogCopy.missedDailySetMessage(dayLabel: dayLabel, hp: loss)
-                        ActivityLogService.insertHPLoss(context: context, profile: profile, message: message)
+                        DependencyContainer[\.activityLogService].insertHPLoss(context: context, profile: profile, message: message)
                     }
                 }
             }
-            day = calendar.date(byAdding: .day, value: 1, to: day)!
+            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: day) else { break }
+            day = nextDay
         }
 
         profile.lastMissedDailyEvaluationDate = yesterdayStart
         profile.lastAppOpen = now
-        try LockdownEvaluationService.evaluate(context: context, now: now)
+        try DependencyContainer[\.lockdownEvaluationService].evaluate(context: context, now: now)
         try context.save()
         return totalHPLostThisRun
     }

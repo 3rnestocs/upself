@@ -1,0 +1,136 @@
+{
+  "quests": [
+    {
+      "title": "Beber 8 vasos de agua",
+      "tier": "easy",
+      "description": "Mantente hidratado bebiendo agua durante todo el día",
+      "isDaily": true
+    },
+    {
+      "title": "Caminar 15 minutos",
+      "tier": "easy",
+      "description": "Realiza una caminata ligera para activar tu cuerpo",
+      "isDaily": true
+    },
+    {
+      "title": "Dormir 7 horas",
+      "tier": "easy",
+      "description": "Establece una rutina de sueño saludable",
+      "isDaily": true
+    },
+    {
+      "title": "Desayunar saludablemente",
+      "tier": "easy",
+      "description": "Come un desayuno equilibrado con proteínas y frutas",
+      "isDaily": true
+    },
+    {
+      "title": "Estiramientos matutinos",
+      "tier": "easy",
+      "description": "Realiza 5 minutos de estiramientos al despertar",
+      "isDaily": false
+    },
+    {
+      "title": "Tomar vitaminas",
+      "tier": "easy",
+      "description": "Consume suplementos vitamínicos según lo prescrito",
+      "isDaily": false
+    },
+    {
+      "title": "Lavar las manos con frecuencia",
+      "tier": "easy",
+      "description": "Mantén la higiene lavando tus manos regularmente",
+      "isDaily": false
+    },
+    {
+      "title": "Meditar 5 minutos",
+      "tier": "easy",
+      "description": "Dedica tiempo a la meditación para el bienestar mental",
+      "isDaily": false
+    },
+    {
+      "title": "Comer verduras en la comida",
+      "tier": "easy",
+      "description": "Incluye verduras frescas en tu almuerzo",
+      "isDaily": false
+    },
+    {
+      "title": "Respiración profunda (10 veces)",
+      "tier": "easy",
+      "description": "Practica respiración profunda para calmar el estrés",
+      "isDaily": false
+    },
+    {
+      "title": "Entrenamiento de cardio 20 minutos",
+      "tier": "regular",
+      "description": "Realiza ejercicio cardiovascular para mejorar la resistencia",
+      "isDaily": true
+    },
+    {
+      "title": "Rutina de flexiones (15 repeticiones)",
+      "tier": "regular",
+      "description": "Fortalece tu pecho y brazos con flexiones",
+      "isDaily": true
+    },
+    {
+      "title": "Yoga por 20 minutos",
+      "tier": "regular",
+      "description": "Practica yoga para flexibilidad y equilibrio",
+      "isDaily": true
+    },
+    {
+      "title": "Correr 3 kilómetros",
+      "tier": "regular",
+      "description": "Realiza una carrera moderada para fortalecer tu resistencia",
+      "isDaily": false
+    },
+    {
+      "title": "Nadar 20 minutos",
+      "tier": "regular",
+      "description": "Nada para ejercitar todo tu cuerpo de forma integral",
+      "isDaily": false
+    },
+    {
+      "title": "Preparar comidas saludables para la semana",
+      "tier": "regular",
+      "description": "Planifica y prepara tus comidas de forma saludable",
+      "isDaily": false
+    },
+    {
+      "title": "Entrenamiento de fuerza 30 minutos",
+      "tier": "hard",
+      "description": "Realiza ejercicios de pesas para ganar musculatura",
+      "isDaily": false
+    },
+    {
+      "title": "Correr 10 kilómetros",
+      "tier": "hard",
+      "description": "Completa una carrera de larga distancia",
+      "isDaily": false
+    },
+    {
+      "title": "Hacer 50 flexiones sin descanso",
+      "tier": "hard",
+      "description": "Supera tu límite actual de resistencia física",
+      "isDaily": false
+    },
+    {
+      "title": "Completar una competencia atlética",
+      "tier": "hard",
+      "description": "Participa y completa una carrera o competencia deportiva",
+      "isDaily": false
+    },
+    {
+      "title": "Maratón (42 kilómetros)",
+      "tier": "epic",
+      "description": "Completa el desafío supremo de una maratón completa",
+      "isDaily": false
+    },
+    {
+      "title": "Transformación física en 3 meses",
+      "tier": "epic",
+      "description": "Logra cambios significativos en tu composición corporal",
+      "isDaily": false
+    }
+  ]
+}

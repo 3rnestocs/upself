@@ -13,7 +13,7 @@ protocol InjectionKey {
 }
 
 struct DependencyContainer {
-    private static var current = DependencyContainer()
+    nonisolated(unsafe) private static var current = DependencyContainer()
     
     static subscript<T>(_ key: T.Type) -> T.Value where T: InjectionKey {
         get { key.currentValue }
@@ -48,10 +48,13 @@ extension DependencyContainer {
 }
 
 private struct SupabaseServiceKey: InjectionKey {
-    static var currentValue: SupabaseServiceProtocol = SupabaseService(
-        url: AppConfig.supabaseURL,
-        anonKey: AppConfig.supabaseAnonKey
-    )
+    nonisolated(unsafe) static var currentValue: SupabaseServiceProtocol = {
+        guard let url = AppConfig.supabaseURL else {
+            assertionFailure("Supabase URL not configured — copy Secrets.template.xcconfig → Secrets.xcconfig and assign it in Xcode project settings.")
+            return NoOpSupabaseService()
+        }
+        return SupabaseService(url: url, anonKey: AppConfig.supabaseAnonKey)
+    }()
 }
 
 import SwiftData
@@ -64,7 +67,7 @@ extension DependencyContainer {
 }
 
 private struct ModelContainerKey: InjectionKey {
-    static var currentValue: ModelContainer = {
+    nonisolated(unsafe) static var currentValue: ModelContainer = {
         let schema = Schema([
             UserProfile.self,
             CharacterStat.self,
@@ -88,11 +91,22 @@ extension DependencyContainer {
 }
 
 private struct DataSeedServiceKey: InjectionKey {
-    static var currentValue: DataSeedServiceProtocol = DataSeedService()
+    nonisolated(unsafe) static var currentValue: DataSeedServiceProtocol = DataSeedService()
+}
+
+extension DependencyContainer {
+    var bundledQuestImportService: BundledQuestImportServiceProtocol {
+        get { DependencyContainer[BundledQuestImportServiceKey.self] }
+        set { DependencyContainer[BundledQuestImportServiceKey.self] = newValue }
+    }
+}
+
+private struct BundledQuestImportServiceKey: InjectionKey {
+    nonisolated(unsafe) static var currentValue: BundledQuestImportServiceProtocol = BundledQuestImportService()
 }
 
 private struct GameClockKey: InjectionKey {
-    static var currentValue: GameClock = GameClock()
+    nonisolated(unsafe) static var currentValue: GameClock = GameClock()
 }
 
 extension DependencyContainer {
@@ -103,12 +117,49 @@ extension DependencyContainer {
 }
 
 private struct LocalAppResetServiceKey: InjectionKey {
-    static var currentValue: LocalAppResetServiceProtocol = LocalAppResetService()
+    nonisolated(unsafe) static var currentValue: LocalAppResetServiceProtocol = LocalAppResetService()
 }
 
 extension DependencyContainer {
     var localAppResetService: LocalAppResetServiceProtocol {
         get { DependencyContainer[LocalAppResetServiceKey.self] }
         set { DependencyContainer[LocalAppResetServiceKey.self] = newValue }
+    }
+}
+
+private struct ActivityLogServiceKey: InjectionKey {
+    nonisolated(unsafe) static var currentValue: ActivityLogServiceProtocol = ActivityLogService(
+        gameClock: DependencyContainer[\.gameClock]
+    )
+}
+
+extension DependencyContainer {
+    var activityLogService: ActivityLogServiceProtocol {
+        get { DependencyContainer[ActivityLogServiceKey.self] }
+        set { DependencyContainer[ActivityLogServiceKey.self] = newValue }
+    }
+}
+
+private struct LockdownEvaluationServiceKey: InjectionKey {
+    nonisolated(unsafe) static var currentValue: LockdownEvaluationServiceProtocol = LockdownEvaluationService()
+}
+
+extension DependencyContainer {
+    var lockdownEvaluationService: LockdownEvaluationServiceProtocol {
+        get { DependencyContainer[LockdownEvaluationServiceKey.self] }
+        set { DependencyContainer[LockdownEvaluationServiceKey.self] = newValue }
+    }
+}
+
+private struct QuestCompletionServiceKey: InjectionKey {
+    nonisolated(unsafe) static var currentValue: QuestCompletionServiceProtocol = QuestCompletionService(
+        gameClock: DependencyContainer[\.gameClock]
+    )
+}
+
+extension DependencyContainer {
+    var questCompletionService: QuestCompletionServiceProtocol {
+        get { DependencyContainer[QuestCompletionServiceKey.self] }
+        set { DependencyContainer[QuestCompletionServiceKey.self] = newValue }
     }
 }

@@ -7,5 +7,9 @@
 		<string>Quantico-Bold.ttf</string>
 		<string>Quantico-Regular.ttf</string>
 	</array>
+	<key>SupabaseURL</key>
+	<string>$(SUPABASE_URL)</string>
+	<key>SupabaseAnonKey</key>
+	<string>$(SUPABASE_ANON_KEY)</string>
 </dict>
 </plist>

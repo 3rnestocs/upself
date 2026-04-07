@@ -13,6 +13,14 @@ struct QuestLogRowCard: View {
     let canComplete: Bool
     let tierBlockedInLockdown: Bool
 
+    private func buildAccessibilityLabel() -> String {
+        let xp = quest.rewardTier?.xp ?? 0
+        var base = L10n.Accessibility.questRowLabel(title: quest.title, xp: xp)
+        if done { base += ", " + L10n.Accessibility.questDone }
+        if tierBlockedInLockdown { base += ", " + L10n.Accessibility.questTierBlocked }
+        return base
+    }
+
     var body: some View {
         HStack(alignment: .center, spacing: AppTheme.Spacing.md) {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
@@ -59,7 +67,11 @@ struct QuestLogRowCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: AppTheme.Radius.card)
-                .fill(AppTheme.Colors.card)
+                .fill(.ultraThinMaterial)
+                .background(
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.card)
+                        .fill(AppTheme.Colors.card.opacity(0.92))
+                )
         }
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.Radius.card)
@@ -68,6 +80,15 @@ struct QuestLogRowCard: View {
                     lineWidth: AppTheme.Stroke.cardLine
                 )
         )
+        .shadow(
+            color: .black.opacity(0.35),
+            radius: AppTheme.Shadow.cardRadius,
+            x: 0,
+            y: AppTheme.Shadow.cardY
+        )
         .opacity(done ? 0.6 : (tierBlockedInLockdown ? 0.85 : 1))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(buildAccessibilityLabel())
+        .accessibilityHint(canComplete ? L10n.Accessibility.questSwipeHint : "")
     }
 }

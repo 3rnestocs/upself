@@ -76,6 +76,31 @@ struct SettingsView: View {
                     .font(AppTheme.Fonts.mono(.caption2))
             }
 
+            if let profile = profiles.first {
+                Section {
+                    ForEach(BundledQuestPack.allCases, id: \.rawValue) { pack in
+                        Button {
+                            viewModel.importQuestPack(pack, profile: profile)
+                        } label: {
+                            Text(L10n.Stats.title(for: pack.attribute))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .tint(AppTheme.Colors.accentXP)
+                    }
+
+                    if let status = viewModel.importQuestsStatus {
+                        Text(status)
+                            .font(AppTheme.Fonts.mono(.caption2))
+                            .foregroundStyle(AppTheme.Colors.secondaryLabel)
+                    }
+                } header: {
+                    Text(L10n.Settings.questsSection)
+                } footer: {
+                    Text(L10n.Settings.questsFooter)
+                        .font(AppTheme.Fonts.mono(.caption2))
+                }
+            }
+
             Section {
                 Button {
                     viewModel.requestLocalDataResetConfirmation()

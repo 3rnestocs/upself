@@ -1,2 +1,8 @@
+# Claude Code — local session state (not versioned)
+.claude/
+
 # Local planning notes (not versioned)
 .plan/
+
+# Secrets — never commit real credentials
+Secrets.xcconfig

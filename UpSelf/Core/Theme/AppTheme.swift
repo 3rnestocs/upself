@@ -122,11 +122,6 @@ enum AppTheme {
         static let cardY: CGFloat = 2
     }
 
-#if canImport(UIKit)
-    enum UIKitColors {
-        static let background = UIColor(red: 18 / 255, green: 18 / 255, blue: 18 / 255, alpha: 1)
-    }
-#endif
 }
 
 #if canImport(UIKit)
