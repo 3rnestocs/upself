@@ -2,7 +2,7 @@
 //  DashboardViewModel.swift
 //  UpSelf
 //
-//  Presentation logic for the HUD; routing stays in AppCoordinator.
+//  Presentation logic for the HUD; routing stays in AppNavigator (wired by AppRootView).
 //
 
 import Foundation
@@ -11,7 +11,7 @@ import Foundation
 @Observable
 final class DashboardViewModel {
 
-    // MARK: - Navigation callbacks (set by AppCoordinator)
+    // MARK: - Navigation callbacks (set by AppRootView via AppNavigator)
 
     var onPresentCreateQuest: (() -> Void)?
     var onPresentHistoryLog: (() -> Void)?

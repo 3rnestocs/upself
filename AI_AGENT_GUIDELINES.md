@@ -11,7 +11,7 @@
 **UpSelf** is an RPG-style life productivity iOS app. Daily responsibilities become quests. Real-world attributes (Logistics, Mastery, Charisma, Willpower, Vitality, Economy) are tracked as character stats (HP, XP, leveling). Accountability is enforced by restricting distracting apps via the Screen Time API when HP drops into the critical zone (lockdown).
 
 **Stack:**
-- UI: SwiftUI + UIKit Coordinators for navigation
+- UI: SwiftUI (`NavigationStack` + `TabView`) — no UIKit navigation
 - Persistence: SwiftData (offline-first, single source of truth)
 - Remote: Supabase (PostgreSQL, sync/auth not yet wired to UI)
 - SPM for dependencies
@@ -21,26 +21,29 @@
 
 ---
 
-## Architecture: MVVM-C
+## Architecture: MVVM-N
 
-The app strictly follows **Model-View-ViewModel-Coordinator** pattern:
+The app follows **Model-View-ViewModel-Navigator** pattern (pure SwiftUI navigation):
 
 1. **Views (SwiftUI):** Declarative UI only. No business logic. User actions delegate to **ViewModel**. State comes from **SwiftData** (`@Query`, environment) or ViewModel-owned presentation state.
 
-2. **ViewModels (`@Observable`):** Presentation logic and SwiftData mutations for the feature. **No UIKit routing**. Expose navigation intent via closures/callbacks for the Coordinator.
+2. **ViewModels (`@Observable`):** Presentation logic and SwiftData mutations for the feature. **No navigation code**. Expose navigation intent via closures/callbacks wired by `AppRootView`.
 
-3. **Coordinators (UIKit):** Own `UINavigationController` / `UITabBarController`. Create `UIHostingController` roots. Push, present, pop, dismiss. Inject dependencies into ViewModels.
+3. **Navigator (`AppNavigator`):** `@Observable` class owning all navigation state (`NavigationPath`, tab selection, sheet presentation, alert queue). Lives in `UpSelfApp`, injected via `@Environment`. `AppRootView` wires ViewModel callbacks to navigator methods. **No UIKit.**
 
-4. **Data Layer:** Offline-first. Screens read from SwiftData. **Do not call Supabase from Views or ViewModels** — sync/auth belongs in services/repositories when introduced.
+4. **`AppRootView`:** SwiftUI root view — `TabView` + `NavigationStack`. Creates stable ViewModels for root screens (`@State`), creates per-push ViewModels in `navigationDestination`, and wires all navigation closures.
 
-5. **DI:** Use **`DependencyContainer`** + **`@Injected`** for shared services (`ModelContainer`, seeding, Supabase, `GameClock`, etc.).
+5. **Data Layer:** Offline-first. Screens read from SwiftData. **Do not call Supabase from Views or ViewModels** — sync/auth belongs in services/repositories when introduced.
+
+6. **DI:** Use **`DependencyContainer`** + **`@Injected`** for shared services (`ModelContainer`, seeding, Supabase, `GameClock`, etc.).
 
 ### Navigation (Strict Rules)
 
-- **Never** use `NavigationLink`, `NavigationStack`, or `@Environment(\.presentationMode)` for **primary app navigation**.
-- **All routing goes through `AppCoordinator`** (or feature coordinators) + `UIHostingController`.
-- **Do not** call `pushViewController`, `popViewController`, `present`, `dismiss`, or similar on the app's `UINavigationController` from Views, ViewModels, or helpers. Add a method on `AppCoordinator`, build the `UIHostingController` there, and perform the transition there.
-- Use deferred helpers (e.g., `DispatchQueue.main.async`) when the entry point is SwiftUI to avoid UIKit/SwiftUI event-loop conflicts.
+- **All primary routing goes through `AppNavigator`** (methods like `pushHome(_:)`, `presentCreateQuest(modelContainer:)`, `enqueueAlert(_:)`).
+- `AppRootView` is the **only** place that calls `AppNavigator` methods directly — it wires ViewModel callbacks at creation time.
+- **Do not** mutate `AppNavigator` from Views or ViewModels directly. Views call ViewModel actions; ViewModels call their navigation closures; those closures call `AppNavigator`.
+- **`NavigationStack`** with a typed `NavigationPath` drives the home stack. Destinations are defined in `HomeDestination` enum.
+- **Alerts** are enqueued via `AppNavigator.enqueueAlert(_:)`. The root `TabView` carries `.alert(item: $navigator.pendingAlert)`. Do **not** use `UIAlertController`.
 - **SwiftUI-only sheets** (local `.sheet`, small overlays) may stay on the View if they are **not** part of app-level stack navigation.
 
 ---
@@ -49,7 +52,8 @@ The app strictly follows **Model-View-ViewModel-Coordinator** pattern:
 
 ```
 UpSelf/
-├── AppCoordinator.swift              Root UIKit coordinator
+├── AppNavigator.swift                Navigation state (@Observable); HomeDestination + AppAlert enums
+├── AppRootView.swift                 SwiftUI root: TabView + NavigationStack; wires VM callbacks
 ├── UpSelfApp.swift                   App entry point
 ├── Core/
 │   ├── AppConfig.swift               Supabase config (Info.plist)
@@ -88,7 +92,7 @@ Features/<FeatureName>/
 └── (optional local helpers)
 ```
 
-Wire entry in `AppCoordinator`, injecting dependencies.
+Wire navigation callbacks in `AppRootView` (via `AppNavigator`), inject dependencies there.
 
 ---
 
@@ -276,8 +280,8 @@ Supabase credentials flow: xcconfig → build settings → `Info.plist` → `App
 
 ## Checklist Before Finishing a Task
 
-- [ ] No `NavigationLink` / primary `NavigationStack` routing introduced.
-- [ ] No direct `UINavigationController` push/pop/present outside `AppCoordinator` for primary flows.
+- [ ] No direct `AppNavigator` mutations from Views or ViewModels — go through ViewModel callbacks wired in `AppRootView`.
+- [ ] New push destinations added to `HomeDestination` enum; handled in `AppRootView.destinationView(for:)`.
 - [ ] Colors/spacing/fonts from `AppTheme`.
 - [ ] Strings from `L10n` + `Localizable.xcstrings`.
 - [ ] SwiftData reads in Views via `@Query` where appropriate.

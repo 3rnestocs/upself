@@ -2,7 +2,7 @@
 //  QuestLogViewModel.swift
 //  UpSelf
 //
-//  Quest list and completion; routing stays in AppCoordinator.
+//  Quest list and completion; routing stays in AppNavigator (wired by AppRootView).
 //
 
 import Foundation

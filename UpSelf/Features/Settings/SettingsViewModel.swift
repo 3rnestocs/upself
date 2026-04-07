@@ -27,7 +27,7 @@ final class SettingsViewModel {
     var draftDayOffset: Int = 0
     #endif
 
-    /// Set by `AppCoordinator` to show reset confirmation via `GlobalUIKitAlertPresenter`.
+    /// Set by `AppRootView` to enqueue a confirmation alert via `AppNavigator`.
     var onRequestLocalDataResetConfirmation: (() -> Void)?
 
     init(

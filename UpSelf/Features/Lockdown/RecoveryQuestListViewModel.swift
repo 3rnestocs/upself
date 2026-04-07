@@ -2,7 +2,7 @@
 //  RecoveryQuestListViewModel.swift
 //  UpSelf
 //
-//  Presentation logic for the lockdown recovery quest list; routing stays in AppCoordinator.
+//  Presentation logic for the lockdown recovery quest list; routing stays in AppNavigator (wired by AppRootView).
 //
 
 import Foundation
@@ -21,7 +21,7 @@ final class RecoveryQuestListViewModel {
     /// System alert when the user swipes a tier that is still blocked in lockdown.
     var onPresentLockdownTierBlockedAlert: (() -> Void)?
 
-    /// Confirm before completing a recovery quest (AppCoordinator shows the alert).
+    /// Confirm before completing a recovery quest (AppNavigator shows the alert).
     var onPresentRecoveryQuestCompleteConfirm: ((_ questTitle: String, _ onConfirmed: @escaping () -> Void) -> Void)?
 
     // MARK: - Display state (populated by refresh)
