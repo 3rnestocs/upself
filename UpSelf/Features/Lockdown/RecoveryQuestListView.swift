@@ -90,7 +90,7 @@ struct RecoveryQuestListView: View {
         }
         .padding(AppTheme.Spacing.md)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(AppTheme.Colors.background)
+        .background(AppTheme.Colors.background.ignoresSafeArea())
         .onAppear {
             viewModel.refresh(allQuests: allQuests, profiles: profiles, clock: gameClock)
         }

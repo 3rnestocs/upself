@@ -26,6 +26,8 @@ struct QuestLogView: View {
     private let viewModel: QuestLogViewModel
 
     @State private var filter: QuestLogFilter = .daily
+    /// Avoids scheduling two pops when `onAppear` and `onChange(of: isInLockdown)` both see lockdown on first paint.
+    @State private var didScheduleLockdownExit = false
 
     init(viewModel: QuestLogViewModel) {
         self.viewModel = viewModel
@@ -68,16 +70,14 @@ struct QuestLogView: View {
         }
         .padding(AppTheme.Spacing.md)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(AppTheme.Colors.background)
+        .background(AppTheme.Colors.background.ignoresSafeArea())
         .onAppear {
             viewModel.refreshQuests(allQuests: allQuests, profiles: profiles, filter: filter, clock: gameClock)
-            if profile?.isInLockdown == true {
-                viewModel.onLockdownEngagedExit?()
-            }
+            scheduleLockdownExitIfNeeded()
         }
         .onChange(of: profile?.isInLockdown) { old, new in
             if new == true, old != true {
-                viewModel.onLockdownEngagedExit?()
+                scheduleLockdownExitIfNeeded()
             }
         }
         .onChange(of: allQuests) { _, q in
@@ -98,6 +98,13 @@ struct QuestLogView: View {
                 .accessibilityLabel(String(localized: L10n.QuestLog.instructionsButtonAccessibility))
             }
         }
+    }
+
+    private func scheduleLockdownExitIfNeeded() {
+        guard profile?.isInLockdown == true else { return }
+        guard !didScheduleLockdownExit else { return }
+        didScheduleLockdownExit = true
+        viewModel.onLockdownEngagedExit?()
     }
 
     private func completeQuestFromSwipe(_ quest: Quest) {

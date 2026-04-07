@@ -146,11 +146,21 @@ struct DashboardView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background {
             RoundedRectangle(cornerRadius: AppTheme.Radius.card)
-                .fill(AppTheme.Colors.card)
+                .fill(.ultraThinMaterial)
+                .background(
+                    RoundedRectangle(cornerRadius: AppTheme.Radius.card)
+                        .fill(AppTheme.Colors.card.opacity(0.92))
+                )
         }
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.Radius.card)
                 .stroke(AppTheme.Colors.cardStroke, lineWidth: AppTheme.Stroke.cardLine)
+        )
+        .shadow(
+            color: .black.opacity(0.35),
+            radius: AppTheme.Shadow.cardRadius,
+            x: 0,
+            y: AppTheme.Shadow.cardY
         )
     }
 
@@ -198,6 +208,12 @@ struct DashboardView: View {
         .overlay(
             RoundedRectangle(cornerRadius: AppTheme.Radius.card)
                 .stroke(AppTheme.Colors.accentXP.opacity(0.45), lineWidth: AppTheme.Stroke.cardLine * 2)
+        )
+        .shadow(
+            color: .black.opacity(0.35),
+            radius: AppTheme.Shadow.cardRadius,
+            x: 0,
+            y: AppTheme.Shadow.cardY
         )
     }
 
@@ -256,6 +272,8 @@ struct DashboardView: View {
             }
         }
         .frame(height: AppTheme.Bar.hpHeight)
+        .accessibilityLabel(L10n.Accessibility.hpLabel)
+        .accessibilityValue(L10n.Accessibility.hpValue(current: viewModel.currentHP, max: viewModel.maxHP))
     }
 
     private func hpFillEnd(ratio: CGFloat) -> Color {

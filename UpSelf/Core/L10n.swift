@@ -282,6 +282,40 @@ enum L10n {
                 arguments: [questTitle as CVarArg]
             )
         }
+
+        // HP bar
+        static var hpLabel: String {
+            String(localized: "accessibility.hp.label")
+        }
+
+        static func hpValue(current: Int, max: Int) -> String {
+            String(
+                format: String(localized: "accessibility.hp.value %lld %lld"),
+                locale: .current,
+                arguments: [current, max] as [CVarArg]
+            )
+        }
+
+        // Quest rows
+        static var questSwipeHint: String {
+            String(localized: "accessibility.quest.swipe_to_complete")
+        }
+
+        static func questRowLabel(title: String, xp: Int) -> String {
+            String(
+                format: String(localized: "accessibility.quest.row_label %@ %lld"),
+                locale: .current,
+                arguments: [title as CVarArg, xp as CVarArg]
+            )
+        }
+
+        static var questDone: String {
+            String(localized: "accessibility.quest.done")
+        }
+
+        static var questTierBlocked: String {
+            String(localized: "accessibility.quest.tier_blocked")
+        }
     }
 
     enum Errors {
