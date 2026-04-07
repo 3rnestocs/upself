@@ -48,7 +48,7 @@ extension DependencyContainer {
 }
 
 private struct SupabaseServiceKey: InjectionKey {
-    static var currentValue: SupabaseServiceProtocol = {
+    nonisolated(unsafe) static var currentValue: SupabaseServiceProtocol = {
         guard let url = AppConfig.supabaseURL else {
             assertionFailure("Supabase URL not configured — copy Secrets.template.xcconfig → Secrets.xcconfig and assign it in Xcode project settings.")
             return NoOpSupabaseService()
@@ -67,7 +67,7 @@ extension DependencyContainer {
 }
 
 private struct ModelContainerKey: InjectionKey {
-    static var currentValue: ModelContainer = {
+    nonisolated(unsafe) static var currentValue: ModelContainer = {
         let schema = Schema([
             UserProfile.self,
             CharacterStat.self,
@@ -91,11 +91,22 @@ extension DependencyContainer {
 }
 
 private struct DataSeedServiceKey: InjectionKey {
-    static var currentValue: DataSeedServiceProtocol = DataSeedService()
+    nonisolated(unsafe) static var currentValue: DataSeedServiceProtocol = DataSeedService()
+}
+
+extension DependencyContainer {
+    var bundledQuestImportService: BundledQuestImportServiceProtocol {
+        get { DependencyContainer[BundledQuestImportServiceKey.self] }
+        set { DependencyContainer[BundledQuestImportServiceKey.self] = newValue }
+    }
+}
+
+private struct BundledQuestImportServiceKey: InjectionKey {
+    nonisolated(unsafe) static var currentValue: BundledQuestImportServiceProtocol = BundledQuestImportService()
 }
 
 private struct GameClockKey: InjectionKey {
-    static var currentValue: GameClock = GameClock()
+    nonisolated(unsafe) static var currentValue: GameClock = GameClock()
 }
 
 extension DependencyContainer {
@@ -106,7 +117,7 @@ extension DependencyContainer {
 }
 
 private struct LocalAppResetServiceKey: InjectionKey {
-    static var currentValue: LocalAppResetServiceProtocol = LocalAppResetService()
+    nonisolated(unsafe) static var currentValue: LocalAppResetServiceProtocol = LocalAppResetService()
 }
 
 extension DependencyContainer {
@@ -117,7 +128,7 @@ extension DependencyContainer {
 }
 
 private struct ActivityLogServiceKey: InjectionKey {
-    static var currentValue: ActivityLogServiceProtocol = ActivityLogService(
+    nonisolated(unsafe) static var currentValue: ActivityLogServiceProtocol = ActivityLogService(
         gameClock: DependencyContainer[\.gameClock]
     )
 }
@@ -130,7 +141,7 @@ extension DependencyContainer {
 }
 
 private struct LockdownEvaluationServiceKey: InjectionKey {
-    static var currentValue: LockdownEvaluationServiceProtocol = LockdownEvaluationService()
+    nonisolated(unsafe) static var currentValue: LockdownEvaluationServiceProtocol = LockdownEvaluationService()
 }
 
 extension DependencyContainer {
@@ -141,7 +152,7 @@ extension DependencyContainer {
 }
 
 private struct QuestCompletionServiceKey: InjectionKey {
-    static var currentValue: QuestCompletionServiceProtocol = QuestCompletionService(
+    nonisolated(unsafe) static var currentValue: QuestCompletionServiceProtocol = QuestCompletionService(
         gameClock: DependencyContainer[\.gameClock]
     )
 }
