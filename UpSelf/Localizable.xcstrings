@@ -1632,6 +1632,70 @@
         }
       }
     },
+    "settings.quests.section" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quest Packs"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paquetes de misiones"
+          }
+        }
+      }
+    },
+    "settings.quests.footer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import a preset set of quests for each attribute. Already imported quests are skipped."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importa un conjunto de misiones predefinidas para cada atributo. Las misiones ya importadas se omiten."
+          }
+        }
+      }
+    },
+    "settings.quests.import_done" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quests imported."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Misiones importadas."
+          }
+        }
+      }
+    },
+    "settings.quests.import_failed" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import failed. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error al importar. Inténtalo de nuevo."
+          }
+        }
+      }
+    },
     "settings.developer.apply" : {
       "localizations" : {
         "en" : {

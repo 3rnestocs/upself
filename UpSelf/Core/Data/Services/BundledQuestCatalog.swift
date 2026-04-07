@@ -54,7 +54,7 @@ enum BundledQuestCatalogError: Error, Sendable {
 
 final class BundledQuestCatalog: Sendable {
     static func load(_ pack: BundledQuestPack) throws -> [BundledQuestBlueprint] {
-        guard let url = Bundle.main.url(forResource: pack.resourceName, withExtension: "json", subdirectory: "Bundle") else {
+        guard let url = Bundle.main.url(forResource: pack.resourceName, withExtension: "json") else {
             throw BundledQuestCatalogError.fileNotFound(pack)
         }
 

@@ -15,11 +15,13 @@ final class SettingsViewModel {
     private let modelContext: ModelContext
     private let gameClock: GameClock
     private let resetService: LocalAppResetServiceProtocol
+    private let importService: BundledQuestImportServiceProtocol
 
     /// Shown when persisting lockdown minimums fails (replaces silent `try? save()`).
     var lockdownPersistenceError: String?
 
     var resetDataStatus: String?
+    var importQuestsStatus: String?
 
     #if DEBUG
     var developerWatermarkStatus: String?
@@ -33,11 +35,13 @@ final class SettingsViewModel {
     init(
         modelContext: ModelContext,
         gameClock: GameClock,
-        resetService: LocalAppResetServiceProtocol = DependencyContainer[\.localAppResetService]
+        resetService: LocalAppResetServiceProtocol = DependencyContainer[\.localAppResetService],
+        importService: BundledQuestImportServiceProtocol = DependencyContainer[\.bundledQuestImportService]
     ) {
         self.modelContext = modelContext
         self.gameClock = gameClock
         self.resetService = resetService
+        self.importService = importService
     }
 
     func onAppear() {
@@ -97,6 +101,15 @@ final class SettingsViewModel {
         profile.lockdownMinHardQuestsToClear = clamped
         Self.normalizeLockdownMinimums(profile)
         persistAfterLockdownChange(revertingOnFailure: profile, epic: previousEpic, hard: previousHard)
+    }
+
+    func importQuestPack(_ pack: BundledQuestPack, profile: UserProfile) {
+        do {
+            try importService.importPack(pack, context: modelContext, profile: profile)
+            importQuestsStatus = String(localized: L10n.Settings.questsImportDone)
+        } catch {
+            importQuestsStatus = String(localized: L10n.Settings.questsImportFailed)
+        }
     }
 
     func requestLocalDataResetConfirmation() {

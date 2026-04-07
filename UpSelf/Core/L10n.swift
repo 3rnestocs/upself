@@ -216,6 +216,11 @@ enum L10n {
         static let lockdownFooter = LocalizedStringResource("settings.lockdown.footer")
         static let lockdownSaveFailed = LocalizedStringResource("settings.lockdown.save_failed")
 
+        static let questsSection = LocalizedStringResource("settings.quests.section")
+        static let questsFooter = LocalizedStringResource("settings.quests.footer")
+        static let questsImportDone = LocalizedStringResource("settings.quests.import_done")
+        static let questsImportFailed = LocalizedStringResource("settings.quests.import_failed")
+
         static let dataSection = LocalizedStringResource("settings.data.section")
         static let dataResetFooter = LocalizedStringResource("settings.data.reset_footer")
         static let dataResetButton = LocalizedStringResource("settings.data.reset_button")
