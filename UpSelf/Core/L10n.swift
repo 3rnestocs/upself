@@ -312,34 +312,6 @@ enum L10n {
         }
     }
 
-    /// Default quest titles seeded on first launch (`DataSeedService`).
-    enum SeedQuests {
-        static let vitalityWater = LocalizedStringResource("seed.quest.vitality.water")
-        static let vitalityTrain45 = LocalizedStringResource("seed.quest.vitality.train45")
-        static let vitalityRun5k = LocalizedStringResource("seed.quest.vitality.run5k")
-        static let logisticsBed = LocalizedStringResource("seed.quest.logistics.bed")
-        static let logisticsWeekPlan = LocalizedStringResource("seed.quest.logistics.week_plan")
-        static let logisticsDeepClean = LocalizedStringResource("seed.quest.logistics.deep_clean")
-        static let masteryRead10 = LocalizedStringResource("seed.quest.mastery.read10")
-        static let masteryStudy2h = LocalizedStringResource("seed.quest.mastery.study2h")
-        static let vitalityBrush3x = LocalizedStringResource("seed.quest.vitality.brush3x")
-        static let vitalityMealOnTime = LocalizedStringResource("seed.quest.vitality.meal_on_time")
-        static let masteryUniversityStudy = LocalizedStringResource("seed.quest.mastery.university_study")
-        static let economyWork2hUninterrupted = LocalizedStringResource("seed.quest.economy.work2h_uninterrupted")
-        static let masteryUpSelf1h = LocalizedStringResource("seed.quest.mastery.upself1h")
-        static let charismaActivityClaudia = LocalizedStringResource("seed.quest.charisma.activity_claudia")
-        static let willpowerGamingSchedule = LocalizedStringResource("seed.quest.willpower.gaming_schedule")
-        static let willpowerSeriesSchedule = LocalizedStringResource("seed.quest.willpower.series_schedule")
-        static let masteryEnglishPractice = LocalizedStringResource("seed.quest.mastery.english_practice")
-        static let logisticsMealPrep = LocalizedStringResource("seed.quest.logistics.meal_prep")
-        static let willpowerColdShower = LocalizedStringResource("seed.quest.willpower.cold_shower")
-        static let willpowerMeditate10 = LocalizedStringResource("seed.quest.willpower.meditate10")
-        static let willpowerNoSugar = LocalizedStringResource("seed.quest.willpower.no_sugar")
-        static let economyTrackExpenses = LocalizedStringResource("seed.quest.economy.track_expenses")
-        static let economyNoDelivery = LocalizedStringResource("seed.quest.economy.no_delivery")
-        static let charismaCallFriend = LocalizedStringResource("seed.quest.charisma.call_friend")
-    }
-
     enum HistoryLog {
         static let title = LocalizedStringResource("history_log.title")
         static let empty = LocalizedStringResource("history_log.empty")

@@ -1,0 +1,136 @@
+{
+  "quests": [
+    {
+      "title": "Saludar a un amigo",
+      "tier": "easy",
+      "description": "Inicia contacto con alguien que te importa",
+      "isDaily": true
+    },
+    {
+      "title": "Hacer un cumplido genuino",
+      "tier": "easy",
+      "description": "Expresa aprecio sincero a alguien",
+      "isDaily": true
+    },
+    {
+      "title": "Escuchar activamente a alguien",
+      "tier": "easy",
+      "description": "Dedica tiempo a escuchar sin distracciones",
+      "isDaily": true
+    },
+    {
+      "title": "Enviar un mensaje amable",
+      "tier": "easy",
+      "description": "Contacta a alguien con una palabra amable",
+      "isDaily": true
+    },
+    {
+      "title": "Sonreír a un desconocido",
+      "tier": "easy",
+      "description": "Muestra amabilidad a alguien que no conoces",
+      "isDaily": false
+    },
+    {
+      "title": "Participar en una conversación grupal",
+      "tier": "easy",
+      "description": "Únete y colabora en una conversación social",
+      "isDaily": false
+    },
+    {
+      "title": "Ayudar a un vecino",
+      "tier": "easy",
+      "description": "Ofrece tu ayuda de forma desinteresada",
+      "isDaily": false
+    },
+    {
+      "title": "Presentarse a alguien nuevo",
+      "tier": "easy",
+      "description": "Inicia una conversación con una persona desconocida",
+      "isDaily": false
+    },
+    {
+      "title": "Compartir un chiste o anécdota",
+      "tier": "easy",
+      "description": "Usa el humor para conectar con otros",
+      "isDaily": false
+    },
+    {
+      "title": "Visitar a un amigo en persona",
+      "tier": "easy",
+      "description": "Pasa tiempo cara a cara con alguien importante",
+      "isDaily": false
+    },
+    {
+      "title": "Organizar una cena con amigos",
+      "tier": "regular",
+      "description": "Reúne a tus amigos para una comida social",
+      "isDaily": true
+    },
+    {
+      "title": "Dar un discurso público",
+      "tier": "regular",
+      "description": "Habla públicamente ante una audiencia",
+      "isDaily": true
+    },
+    {
+      "title": "Resolver un conflicto pacíficamente",
+      "tier": "regular",
+      "description": "Negocia y reconcilia una diferencia",
+      "isDaily": true
+    },
+    {
+      "title": "Hacer una presentación profesional",
+      "tier": "regular",
+      "description": "Presenta ideas a colegas o superiores",
+      "isDaily": false
+    },
+    {
+      "title": "Networking en un evento profesional",
+      "tier": "regular",
+      "description": "Conecta con profesionales en tu campo",
+      "isDaily": false
+    },
+    {
+      "title": "Ser mentor de alguien",
+      "tier": "regular",
+      "description": "Guía y apoya el desarrollo de otra persona",
+      "isDaily": false
+    },
+    {
+      "title": "Organizar un evento comunitario",
+      "tier": "hard",
+      "description": "Planifica y ejecuta un evento para la comunidad",
+      "isDaily": false
+    },
+    {
+      "title": "Dar un seminario o taller",
+      "tier": "hard",
+      "description": "Enseña y comparte tu conocimiento públicamente",
+      "isDaily": false
+    },
+    {
+      "title": "Influir positivamente en un grupo",
+      "tier": "hard",
+      "description": "Lidera a un grupo hacia una causa positiva",
+      "isDaily": false
+    },
+    {
+      "title": "Reparar una amistad rota",
+      "tier": "hard",
+      "description": "Reconcíliate genuinamente con alguien distante",
+      "isDaily": false
+    },
+    {
+      "title": "Convertirse en un líder reconocido",
+      "tier": "epic",
+      "description": "Alcanza posición de influencia y liderazgo",
+      "isDaily": false
+    },
+    {
+      "title": "Crear un movimiento social positivo",
+      "tier": "epic",
+      "description": "Inspira a otros a seguir una causa importante",
+      "isDaily": false
+    }
+  ]
+}
