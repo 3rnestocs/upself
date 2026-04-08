@@ -51,22 +51,23 @@ final class DashboardViewModel {
         let id = profile.id
         let ref = clock.now
 
-        displayStats = stats
+        let newStats = stats
             .filter { $0.user?.id == id }
             .sorted { a, b in
                 let ia = CharacterAttribute.allCases.firstIndex { $0.rawValue == a.kindRawValue } ?? Int.max
                 let ib = CharacterAttribute.allCases.firstIndex { $0.rawValue == b.kindRawValue } ?? Int.max
                 return ia < ib
             }
+        if newStats.map(\.id) != displayStats.map(\.id) { displayStats = newStats }
 
         let userQuests = quests.filter { $0.user?.id == id }
         let dailies = userQuests
-            .filter(\.isDaily)
+            .filter(\.isCommitted)
             .sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
 
-        dailyQuests = dailies
+        if dailies.map(\.id) != dailyQuests.map(\.id) { dailyQuests = dailies }
         completedDailiesToday = dailies.filter { $0.displayAsCompleted(referenceDate: ref) }.count
-        hasOneOffQuestsOnly = dailies.isEmpty && userQuests.contains { !$0.isDaily }
+        hasOneOffQuestsOnly = dailies.isEmpty && userQuests.contains { !$0.isCommitted }
         hasAnyQuests = !userQuests.isEmpty
 
         currentHP = profile.currentHP

@@ -51,10 +51,12 @@ final class RecoveryQuestListViewModel {
         let ref = clock.now
         let episodeStart = profile.lockdownEpisodeStart
 
-        epicQuests = sorted(allQuests.filter { $0.user?.id == id && $0.rewardTier == .epic },
-                            ref: ref, episodeStart: episodeStart)
-        hardQuests = sorted(allQuests.filter { $0.user?.id == id && $0.rewardTier == .hard },
-                            ref: ref, episodeStart: episodeStart)
+        let newEpic = sorted(allQuests.filter { $0.user?.id == id && $0.rewardTier == .epic },
+                             ref: ref, episodeStart: episodeStart)
+        let newHard = sorted(allQuests.filter { $0.user?.id == id && $0.rewardTier == .hard },
+                             ref: ref, episodeStart: episodeStart)
+        if newEpic.map(\.id) != epicQuests.map(\.id) { epicQuests = newEpic }
+        if newHard.map(\.id) != hardQuests.map(\.id) { hardQuests = newHard }
     }
 
     private func sorted(_ quests: [Quest], ref: Date, episodeStart: Date?) -> [Quest] {

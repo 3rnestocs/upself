@@ -16,6 +16,7 @@ struct RecoveryQuestListView: View {
     @Query(sort: \Quest.title) private var allQuests: [Quest]
 
     @Environment(\.gameClock) private var gameClock
+    @Environment(\.scenePhase) private var scenePhase
 
     private let viewModel: RecoveryQuestListViewModel
 
@@ -99,6 +100,11 @@ struct RecoveryQuestListView: View {
         }
         .onChange(of: profiles) { _, p in
             viewModel.refresh(allQuests: allQuests, profiles: p, clock: gameClock)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                viewModel.refresh(allQuests: allQuests, profiles: profiles, clock: gameClock)
+            }
         }
     }
 

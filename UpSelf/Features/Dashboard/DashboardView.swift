@@ -14,6 +14,7 @@ struct DashboardView: View {
     @Query(sort: \Quest.title) private var allQuests: [Quest]
 
     @Environment(\.gameClock) private var gameClock
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showStatsInfo = false
 
     private let viewModel: DashboardViewModel
@@ -55,6 +56,11 @@ struct DashboardView: View {
         }
         .onChange(of: allQuests) { _, q in
             viewModel.refresh(profiles: profiles, stats: allStats, quests: q, clock: gameClock)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                viewModel.refresh(profiles: profiles, stats: allStats, quests: allQuests, clock: gameClock)
+            }
         }
     }
 
