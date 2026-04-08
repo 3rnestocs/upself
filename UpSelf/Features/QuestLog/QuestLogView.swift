@@ -15,6 +15,7 @@ import UIKit
 enum QuestLogFilter: Hashable {
     case daily
     case oneOff
+    case goal
 }
 
 struct QuestLogView: View {
@@ -22,6 +23,7 @@ struct QuestLogView: View {
     @Query(sort: \Quest.title) private var allQuests: [Quest]
 
     @Environment(\.gameClock) private var gameClock
+    @Environment(\.scenePhase) private var scenePhase
 
     private let viewModel: QuestLogViewModel
 
@@ -40,6 +42,7 @@ struct QuestLogView: View {
             Picker("", selection: $filter) {
                 Text(L10n.QuestLog.filterDaily).tag(QuestLogFilter.daily)
                 Text(L10n.QuestLog.filterOneOff).tag(QuestLogFilter.oneOff)
+                Text(L10n.QuestLog.filterGoal).tag(QuestLogFilter.goal)
             }
             .pickerStyle(.segmented)
             .accessibilityLabel(L10n.QuestLog.filterAccessibility)
@@ -85,6 +88,11 @@ struct QuestLogView: View {
         }
         .onChange(of: filter) { _, f in
             viewModel.refreshQuests(allQuests: allQuests, profiles: profiles, filter: f, clock: gameClock)
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                viewModel.refreshQuests(allQuests: allQuests, profiles: profiles, filter: filter, clock: gameClock)
+            }
         }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

@@ -25,6 +25,9 @@ final class QuestLogViewModel {
     /// Quest log instructions presented as a system alert.
     var onPresentQuestLogInstructions: (() -> Void)?
 
+    /// Fires once after the 3rd quest completion to prompt the difficulty self-report.
+    var onShouldShowDifficultyCheck: (() -> Void)?
+
     // MARK: - Display state
 
     /// Filtered and sorted quest list for the current filter tab. Populated by `refreshQuests(...)`.
@@ -44,23 +47,27 @@ final class QuestLogViewModel {
 
     func refreshQuests(allQuests: [Quest], profiles: [UserProfile], filter: QuestLogFilter, clock: GameClock) {
         guard let id = profiles.first?.id else {
-            visibleQuests = []
+            if !visibleQuests.isEmpty { visibleQuests = [] }
             return
         }
         let ref = clock.now
         let subset = allQuests.filter { quest in
             guard quest.user?.id == id else { return false }
             switch filter {
-            case .daily:  return quest.isDaily
-            case .oneOff: return !quest.isDaily
+            case .daily:  return quest.isCommitted
+            case .oneOff: return quest.isFreeform
+            case .goal:   return quest.isGoal
             }
         }
-        visibleQuests = subset.sorted { a, b in
+        let sorted = subset.sorted { a, b in
             let ad = a.displayAsCompleted(referenceDate: ref)
             let bd = b.displayAsCompleted(referenceDate: ref)
             if ad != bd { return !ad && bd }
             return a.title.localizedCaseInsensitiveCompare(b.title) == .orderedAscending
         }
+        // Skip the assignment if nothing changed to avoid triggering a list re-render.
+        guard sorted.map(\.id) != visibleQuests.map(\.id) else { return }
+        visibleQuests = sorted
     }
 
     // MARK: - Navigation
@@ -78,11 +85,24 @@ final class QuestLogViewModel {
         case .completed, .completedAndClearedLockdown:
             // Lockdown cannot clear from QuestLog (blocked tiers prevent it); .completedAndClearedLockdown
             // is handled by RecoveryQuestListViewModel.
-            break
+            checkDifficultyPromptIfNeeded()
         case .tierBlockedInLockdown:
             onPresentLockdownTierBlockedAlert?()
         case .notEligible:
             break
+        }
+    }
+
+    // MARK: - Difficulty check
+
+    private func checkDifficultyPromptIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: "hasSeenDifficultyCheck") else { return }
+        let count = defaults.integer(forKey: "totalQuestCompletions") + 1
+        defaults.set(count, forKey: "totalQuestCompletions")
+        if count >= 3 {
+            defaults.set(true, forKey: "hasSeenDifficultyCheck")
+            onShouldShowDifficultyCheck?()
         }
     }
 }

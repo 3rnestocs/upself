@@ -23,43 +23,48 @@ struct QuestLogRowCard: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: AppTheme.Spacing.md) {
+            // MARK: Leading — title + meta
             VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text(quest.title)
                     .font(AppTheme.Fonts.ui(.subheadline))
                     .fontWeight(.medium)
-                    .foregroundStyle(Color.white.opacity(0.92))
+                    .foregroundStyle(Color.white.opacity(done ? 0.45 : 0.92))
+                    .strikethrough(done, color: .white.opacity(0.3))
                     .lineLimit(3)
-                if let kind = quest.statKind {
-                    Text(L10n.Stats.title(for: kind))
-                        .font(AppTheme.Fonts.mono(.caption))
-                        .foregroundStyle(AppTheme.Colors.secondaryLabel)
+
+                HStack(spacing: AppTheme.Spacing.sm) {
+                    if let kind = quest.statKind {
+                        statChip(for: kind)
+                    }
+
+                    if let target = quest.weeklyTarget, quest.isCommitted {
+                        weeklyTargetChip(target: target)
+                    }
                 }
+
                 if tierBlockedInLockdown {
                     Text(L10n.Lockdown.questRowLockedLabel)
                         .font(AppTheme.Fonts.mono(.caption2))
                         .foregroundStyle(AppTheme.Colors.alertHP.opacity(0.95))
                 }
             }
+
             Spacer(minLength: AppTheme.Spacing.sm)
 
-            VStack(alignment: .trailing, spacing: AppTheme.Spacing.sm) {
+            // MARK: Trailing — XP + status
+            VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
                 if let tier = quest.rewardTier {
-                    Text(L10n.HUD.xpFormat(xp: tier.xp))
-                        .font(AppTheme.Fonts.mono(.subheadline))
-                        .foregroundStyle(AppTheme.Colors.accentXP)
+                    xpChip(xp: tier.xp)
                 }
 
                 if tierBlockedInLockdown {
                     Image(systemName: "lock.fill")
                         .font(AppTheme.Fonts.ui(.caption))
                         .foregroundStyle(AppTheme.Colors.secondaryLabel)
-                }
-
-                if !canComplete, done {
-                    Text(quest.isDaily ? L10n.HUD.questDoneToday : L10n.HUD.questDoneOnce)
+                } else if !canComplete, done {
+                    Text(quest.isGoal ? L10n.HUD.questDoneOnce : L10n.HUD.questDoneToday)
                         .font(AppTheme.Fonts.mono(.caption2))
-                        .foregroundStyle(AppTheme.Colors.accentXP.opacity(0.9))
-                        .padding(.vertical, AppTheme.Spacing.xs)
+                        .foregroundStyle(AppTheme.Colors.accentXP.opacity(0.7))
                 }
             }
         }
@@ -86,9 +91,43 @@ struct QuestLogRowCard: View {
             x: 0,
             y: AppTheme.Shadow.cardY
         )
-        .opacity(done ? 0.6 : (tierBlockedInLockdown ? 0.85 : 1))
+        .opacity(tierBlockedInLockdown ? 0.85 : 1)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(buildAccessibilityLabel())
         .accessibilityHint(canComplete ? L10n.Accessibility.questSwipeHint : "")
+    }
+
+    // MARK: - Sub-views
+
+    private func statChip(for kind: CharacterAttribute) -> some View {
+        HStack(spacing: 4) {
+            AppTheme.Icons.icon(for: kind).view(size: 11, color: AppTheme.Colors.secondaryLabel)
+            Text(L10n.Stats.title(for: kind))
+                .font(AppTheme.Fonts.mono(.caption))
+                .foregroundStyle(AppTheme.Colors.secondaryLabel)
+        }
+    }
+
+    private func weeklyTargetChip(target: Int) -> some View {
+        HStack(spacing: 3) {
+            Image(systemName: "repeat")
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(AppTheme.Colors.secondaryLabel.opacity(0.7))
+            Text("\(target)×/wk")
+                .font(AppTheme.Fonts.mono(.caption2))
+                .foregroundStyle(AppTheme.Colors.secondaryLabel.opacity(0.7))
+        }
+    }
+
+    private func xpChip(xp: Int) -> some View {
+        Text(L10n.HUD.xpFormat(xp: xp))
+            .font(AppTheme.Fonts.mono(.caption))
+            .foregroundStyle(done ? AppTheme.Colors.accentXP.opacity(0.45) : AppTheme.Colors.accentXP)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(
+                AppTheme.Colors.accentXP.opacity(done ? 0.06 : 0.12),
+                in: RoundedRectangle(cornerRadius: AppTheme.Radius.chip)
+            )
     }
 }
