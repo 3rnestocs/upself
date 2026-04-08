@@ -8,6 +8,17 @@
 import Foundation
 import SwiftData
 
+enum CreateQuestSchedule: String, CaseIterable, Identifiable {
+    case committed = "committed"
+    case freeform  = "freeform"
+    case goal      = "goal"
+
+    var id: String { rawValue }
+
+    /// Default weeklyTarget when the user picks this schedule.
+    var defaultWeeklyTarget: Int { 7 }
+}
+
 @MainActor
 @Observable
 final class CreateQuestViewModel {
@@ -18,7 +29,9 @@ final class CreateQuestViewModel {
     var titleText: String = ""
     var selectedTier: QuestRewardTier = .easy
     var selectedAttribute: CharacterAttribute = .logistics
-    var isDaily: Bool = true
+    var selectedSchedule: CreateQuestSchedule = .committed
+    /// Only meaningful when `selectedSchedule == .committed`. Range 1…7.
+    var weeklyTarget: Int = 7
     var validationMessage: LocalizedStringResource?
 
     init(modelContext: ModelContext, onDismiss: @escaping () -> Void) {
@@ -46,11 +59,26 @@ final class CreateQuestViewModel {
                 validationMessage = L10n.CreateQuest.validationNoProfile
                 return
             }
+            let resolvedWeeklyTarget: Int?
+            let resolvedIsGoal: Bool
+            switch selectedSchedule {
+            case .committed:
+                resolvedWeeklyTarget = weeklyTarget
+                resolvedIsGoal = false
+            case .freeform:
+                resolvedWeeklyTarget = nil
+                resolvedIsGoal = false
+            case .goal:
+                resolvedWeeklyTarget = nil
+                resolvedIsGoal = true
+            }
+
             let quest = Quest(
                 title: trimmed,
                 statKind: selectedAttribute,
                 rewardXP: selectedTier.xp,
-                isDaily: isDaily
+                weeklyTarget: resolvedWeeklyTarget,
+                isGoal: resolvedIsGoal
             )
             quest.user = profile
             modelContext.insert(quest)

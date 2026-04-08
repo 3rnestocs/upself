@@ -47,12 +47,11 @@ struct CreateQuestView: View {
 
                 attributePicker
 
-                Toggle(isOn: $viewModel.isDaily) {
-                    Text(L10n.CreateQuest.fieldDaily)
-                        .font(AppTheme.Fonts.ui(.subheadline))
-                        .foregroundStyle(AppTheme.Colors.secondaryLabel)
+                schedulePicker
+
+                if viewModel.selectedSchedule == .committed {
+                    weeklyTargetStepper
                 }
-                .tint(AppTheme.Colors.accentXP)
             }
             .padding(.horizontal, AppTheme.Spacing.md)
             .padding(.vertical, AppTheme.Spacing.lg)
@@ -122,6 +121,40 @@ struct CreateQuestView: View {
             .pickerStyle(.menu)
             .tint(AppTheme.Colors.accentXP)
             .labelsHidden()
+        }
+    }
+
+    private var schedulePicker: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+            Text(L10n.CreateQuest.fieldSchedule)
+                .font(AppTheme.Fonts.ui(.caption))
+                .foregroundStyle(AppTheme.Colors.secondaryLabel)
+
+            Picker(selection: $viewModel.selectedSchedule) {
+                ForEach(CreateQuestSchedule.allCases) { schedule in
+                    Text(L10n.CreateQuest.scheduleName(schedule)).tag(schedule)
+                }
+            } label: {
+                Text(L10n.CreateQuest.fieldSchedule)
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
+    private var weeklyTargetStepper: some View {
+        HStack {
+            Text(L10n.CreateQuest.fieldWeeklyTarget)
+                .font(AppTheme.Fonts.ui(.subheadline))
+                .foregroundStyle(AppTheme.Colors.secondaryLabel)
+            Spacer()
+            Stepper(
+                value: $viewModel.weeklyTarget,
+                in: 1...7
+            ) {
+                Text("\(viewModel.weeklyTarget)×/\(L10n.CreateQuest.weeklyTargetSuffix)")
+                    .font(AppTheme.Fonts.mono(.subheadline))
+                    .foregroundStyle(AppTheme.Colors.accentXP)
+            }
         }
     }
 
