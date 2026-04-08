@@ -47,9 +47,19 @@ enum AppTheme {
             quantico(Quantico.regular, style: style)
         }
 
+        /// Quantico Regular at a fixed point size, bypassing TextStyle ceiling.
+        static func ui(size: CGFloat) -> Font {
+            Font.custom(Quantico.regular, size: size)
+        }
+
         /// Quantico Bold — numbers, stats, HP/XP (replaces monospaced emphasis).
         static func mono(_ style: Font.TextStyle = .body) -> Font {
             quantico(Quantico.bold, style: style)
+        }
+
+        /// Quantico Bold at a fixed point size, bypassing TextStyle ceiling.
+        static func mono(size: CGFloat) -> Font {
+            Font.custom(Quantico.bold, size: size)
         }
 
         private static func quantico(_ name: String, style: Font.TextStyle) -> Font {
@@ -120,6 +130,55 @@ enum AppTheme {
     enum Shadow {
         static let cardRadius: CGFloat = 8
         static let cardY: CGFloat = 2
+    }
+
+    /// A type-safe icon reference — either an SF Symbol or an asset-catalog image.
+    enum Icon {
+        case symbol(String)
+        case asset(String)
+
+        /// Renders the icon as a SwiftUI view.
+        /// - Parameters:
+        ///   - size: Point size for symbols; width/height frame for assets.
+        ///   - color: Tint applied to symbols (ignored for assets).
+        @ViewBuilder
+        func view(size: CGFloat = 24, color: Color = AppTheme.Colors.accentXP) -> some View {
+            switch self {
+            case .symbol(let name):
+                Image(systemName: name)
+                    .font(.system(size: size, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(color)
+            case .asset(let name):
+                Image(name)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size, height: size)
+            }
+        }
+    }
+
+    /// Canonical icon mappings for domain types and app assets.
+    enum Icons {
+        static let appLogo: Icon = .asset("logo")
+
+        // Onboarding
+        static let onboardingWelcome: Icon        = .symbol("wand.and.sparkles")
+        static let onboardingConcept: Icon        = .symbol("list.bullet.clipboard.fill")
+        static let onboardingLockdown: Icon       = .symbol("lock.shield.fill")
+        static let onboardingPersonalization: Icon = .symbol("scope")
+        static let onboardingDifficulty: Icon     = .symbol("scale.3d")
+
+        static func icon(for attribute: CharacterAttribute) -> Icon {
+            switch attribute {
+            case .vitality:  .symbol("heart.fill")
+            case .mastery:   .symbol("book.fill")
+            case .charisma:  .symbol("person.2.fill")
+            case .willpower: .symbol("bolt.fill")
+            case .logistics: .symbol("checklist")
+            case .economy:   .symbol("dollarsign")
+            }
+        }
     }
 
 }
