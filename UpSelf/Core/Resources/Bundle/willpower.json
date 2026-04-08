@@ -4,133 +4,155 @@
       "title": "No revisar el móvil la primera hora",
       "tier": "easy",
       "description": "Resiste la tentación de revisar tu teléfono al despertar",
-      "isDaily": true
-    },
-    {
-      "title": "Ayuno intermitente (12 horas)",
-      "tier": "easy",
-      "description": "Pasa 12 horas sin comer después de la cena",
-      "isDaily": true
-    },
-    {
-      "title": "No comer azúcar un día",
-      "tier": "easy",
-      "description": "Evita completamente el azúcar refinado",
-      "isDaily": true
+      "weeklyTarget": 7,
+      "isGoal": false
     },
     {
       "title": "Rechazar una tentación",
       "tier": "easy",
-      "description": "Declina algo que te atrae pero no quieres comer",
-      "isDaily": true
+      "description": "Declina algo que te atrae pero sabes que no te conviene",
+      "weeklyTarget": 7,
+      "isGoal": false
     },
     {
-      "title": "Ducha fría de 30 segundos",
+      "title": "Ducha fría",
       "tier": "easy",
       "description": "Afronta el frío para fortalecer tu voluntad",
-      "isDaily": false
+      "weeklyTarget": 7,
+      "isGoal": false
     },
     {
       "title": "No ver redes sociales durante 2 horas",
       "tier": "easy",
       "description": "Desconéctate de las redes sociales",
-      "isDaily": false
+      "weeklyTarget": 7,
+      "isGoal": false
     },
     {
       "title": "Completar una tarea difícil primero",
       "tier": "easy",
       "description": "Aborda lo más difícil cuando tienes más energía",
-      "isDaily": false
-    },
-    {
-      "title": "Meditar con pensamientos intrusivos",
-      "tier": "easy",
-      "description": "Practica la meditación sin abandonar",
-      "isDaily": false
+      "weeklyTarget": 5,
+      "isGoal": false
     },
     {
       "title": "No postergar un trabajo importante",
       "tier": "easy",
       "description": "Inicia inmediatamente una tarea evitada",
-      "isDaily": false
+      "weeklyTarget": 5,
+      "isGoal": false
+    },
+    {
+      "title": "Ayuno intermitente (12 horas)",
+      "tier": "easy",
+      "description": "Pasa 12 horas sin comer después de la cena",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "No comer azúcar un día",
+      "tier": "easy",
+      "description": "Evita completamente el azúcar refinado",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Meditar con pensamientos intrusivos",
+      "tier": "easy",
+      "description": "Practica la meditación sin abandonar",
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Cumplir una promesa que hiciste",
       "tier": "easy",
       "description": "Mantén tu palabra sin importar las dificultades",
-      "isDaily": false
-    },
-    {
-      "title": "Ayuno intermitente (16 horas)",
-      "tier": "regular",
-      "description": "Extiende tu ayuno a 16 horas",
-      "isDaily": true
-    },
-    {
-      "title": "Ducha fría de 2 minutos",
-      "tier": "regular",
-      "description": "Aguanta el frío intenso para construir resilencia",
-      "isDaily": true
-    },
-    {
-      "title": "No consumir cafeína por una semana",
-      "tier": "regular",
-      "description": "Detox de cafeína para resetear tu dependencia",
-      "isDaily": true
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Trabajar sin distracciones por 3 horas",
       "tier": "regular",
       "description": "Mantén total concentración sin interrupciones",
-      "isDaily": false
+      "weeklyTarget": 3,
+      "isGoal": false
+    },
+    {
+      "title": "Ayuno intermitente (16 horas)",
+      "tier": "regular",
+      "description": "Extiende tu ayuno a 16 horas",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Ducha fría de 2 minutos",
+      "tier": "regular",
+      "description": "Aguanta el frío intenso para construir resilencia",
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Decir no a algo que te tienta",
       "tier": "regular",
       "description": "Rechaza una diversión tentadora por principios",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "No consumir cafeína por una semana",
+      "tier": "regular",
+      "description": "Detox de cafeína para resetear tu dependencia",
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Crear un hábito nuevo en 30 días",
       "tier": "regular",
       "description": "Establece una rutina consistente durante un mes",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Ayuno completo (24 horas)",
       "tier": "hard",
       "description": "Completa un día sin comer nada sólido",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Abstinencia de tecnología por 48 horas",
       "tier": "hard",
       "description": "Desconéctate completamente de dispositivos",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Superar tu mayor tentación",
       "tier": "hard",
       "description": "Enfrenta y vence tu mayor debilidad personal",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Retiro de silencio de una semana",
       "tier": "hard",
       "description": "Pasa una semana en silencio y contemplación",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Dominar la autodisciplina perfecta",
       "tier": "epic",
       "description": "Desarrolla control total sobre tus impulsos",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Transformación radical de hábitos",
       "tier": "epic",
       "description": "Reemplaza todos tus hábitos negativos en 90 días",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     }
   ]
 }

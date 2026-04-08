@@ -4,133 +4,155 @@
       "title": "Hacer la cama al despertar",
       "tier": "easy",
       "description": "Comienza el día organizando tu habitación",
-      "isDaily": true
-    },
-    {
-      "title": "Limpiar el escritorio",
-      "tier": "easy",
-      "description": "Organiza y limpia tu espacio de trabajo",
-      "isDaily": true
+      "weeklyTarget": 7,
+      "isGoal": false
     },
     {
       "title": "Lavar los platos inmediatamente",
       "tier": "easy",
       "description": "Mantén la cocina limpia sin dejar platos acumulados",
-      "isDaily": true
-    },
-    {
-      "title": "Revisar y responder mensajes pendientes",
-      "tier": "easy",
-      "description": "Gestiona tu comunicación de forma ordenada",
-      "isDaily": true
-    },
-    {
-      "title": "Organizar documentos en carpetas",
-      "tier": "easy",
-      "description": "Clasifica papeles y documentos correctamente",
-      "isDaily": false
-    },
-    {
-      "title": "Hacer lista de compras semanal",
-      "tier": "easy",
-      "description": "Planifica las compras que necesitas",
-      "isDaily": false
-    },
-    {
-      "title": "Tirar la basura de la habitación",
-      "tier": "easy",
-      "description": "Mantén tu espacio libre de desorden",
-      "isDaily": false
-    },
-    {
-      "title": "Ordenar tu guardarropa",
-      "tier": "easy",
-      "description": "Organiza tu ropa de manera sistemática",
-      "isDaily": false
+      "weeklyTarget": 5,
+      "isGoal": false
     },
     {
       "title": "Verificar tareas pendientes en la agenda",
       "tier": "easy",
       "description": "Revisa y actualiza tu lista de tareas",
-      "isDaily": false
+      "weeklyTarget": 5,
+      "isGoal": false
+    },
+    {
+      "title": "Hacer lista de compras semanal",
+      "tier": "easy",
+      "description": "Planifica las compras que necesitas",
+      "weeklyTarget": 1,
+      "isGoal": false
+    },
+    {
+      "title": "Limpiar el escritorio",
+      "tier": "easy",
+      "description": "Organiza y limpia tu espacio de trabajo",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Revisar y responder mensajes pendientes",
+      "tier": "easy",
+      "description": "Gestiona tu comunicación de forma ordenada",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Organizar documentos en carpetas",
+      "tier": "easy",
+      "description": "Clasifica papeles y documentos correctamente",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Tirar la basura de la habitación",
+      "tier": "easy",
+      "description": "Mantén tu espacio libre de desorden",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Ordenar tu guardarropa",
+      "tier": "easy",
+      "description": "Organiza tu ropa de manera sistemática",
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Limpiar un área de la casa",
       "tier": "easy",
       "description": "Dedica tiempo a limpiar una habitación específica",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Planificación semanal detallada",
       "tier": "regular",
       "description": "Crea un plan estructurado para toda la semana",
-      "isDaily": true
+      "weeklyTarget": 1,
+      "isGoal": false
     },
     {
       "title": "Limpiar profundamente la cocina",
       "tier": "regular",
       "description": "Limpia electrodomésticos y organiza armarios",
-      "isDaily": true
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Organizar todo el dormitorio",
       "tier": "regular",
       "description": "Realiza una reorganización completa de tu habitación",
-      "isDaily": true
-    },
-    {
-      "title": "Sistema de archivos digital",
-      "tier": "regular",
-      "description": "Crea una estructura ordenada para tus archivos digitales",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Planificación mensual de presupuesto",
       "tier": "regular",
       "description": "Organiza y clasifica gastos por categorías",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Revisión y actualización de contactos",
       "tier": "regular",
       "description": "Organiza tu lista de contactos y elimina los obsoletos",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Sistema de archivos digital",
+      "tier": "regular",
+      "description": "Crea una estructura ordenada para tus archivos digitales",
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Limpieza profunda del hogar completo",
       "tier": "hard",
       "description": "Limpia a fondo toda la casa incluyendo rincones difíciles",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Reorganización total del espacio de trabajo",
       "tier": "hard",
       "description": "Rediseña tu oficina para máxima productividad",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Implementar sistema de organización avanzado",
       "tier": "hard",
       "description": "Crea un sistema de gestión personal completo",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Auditoría completa de posesiones personales",
       "tier": "hard",
       "description": "Revisa todos tus pertenencias y deshazte de lo innecesario",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Rediseño integral del hogar",
       "tier": "epic",
       "description": "Realiza una renovación completa de tu espacio vital",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Maestría en productividad personal",
       "tier": "epic",
       "description": "Domina un sistema completo de gestión del tiempo y tareas",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     }
   ]
 }

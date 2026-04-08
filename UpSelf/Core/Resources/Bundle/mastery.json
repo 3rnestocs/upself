@@ -4,133 +4,155 @@
       "title": "Leer 10 páginas de un libro",
       "tier": "easy",
       "description": "Dedica tiempo a la lectura diaria para expandir tu conocimiento",
-      "isDaily": true
-    },
-    {
-      "title": "Ver un vídeo educativo",
-      "tier": "easy",
-      "description": "Aprende algo nuevo viendo contenido de calidad",
-      "isDaily": true
+      "weeklyTarget": 5,
+      "isGoal": false
     },
     {
       "title": "Estudiar 20 minutos",
       "tier": "easy",
       "description": "Revisa apuntes o material de estudio",
-      "isDaily": true
+      "weeklyTarget": 5,
+      "isGoal": false
     },
     {
       "title": "Practicar un idioma (15 minutos)",
       "tier": "easy",
       "description": "Dedica tiempo a aprender o mejorar un idioma",
-      "isDaily": true
-    },
-    {
-      "title": "Aprender un concepto nuevo",
-      "tier": "easy",
-      "description": "Investiga y entiende un tema que te interese",
-      "isDaily": false
-    },
-    {
-      "title": "Resolver problemas matemáticos",
-      "tier": "easy",
-      "description": "Practica tu habilidad numérica con ejercicios",
-      "isDaily": false
+      "weeklyTarget": 5,
+      "isGoal": false
     },
     {
       "title": "Escuchar un podcast educativo",
       "tier": "easy",
       "description": "Aprende mientras escuchas contenido de calidad",
-      "isDaily": false
+      "weeklyTarget": 5,
+      "isGoal": false
     },
     {
       "title": "Escribir en un diario de aprendizaje",
       "tier": "easy",
       "description": "Refleja sobre lo que has aprendido",
-      "isDaily": false
+      "weeklyTarget": 3,
+      "isGoal": false
+    },
+    {
+      "title": "Ver un vídeo educativo",
+      "tier": "easy",
+      "description": "Aprende algo nuevo viendo contenido de calidad",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Aprender un concepto nuevo",
+      "tier": "easy",
+      "description": "Investiga y entiende un tema que te interese",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Resolver problemas matemáticos",
+      "tier": "easy",
+      "description": "Practica tu habilidad numérica con ejercicios",
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Completar una lección en línea",
       "tier": "easy",
       "description": "Avanza en un curso o plataforma de aprendizaje",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Enseñar lo aprendido a alguien más",
       "tier": "easy",
       "description": "Consolida tu conocimiento explicándolo a otros",
-      "isDaily": false
-    },
-    {
-      "title": "Leer un libro completo",
-      "tier": "regular",
-      "description": "Termina la lectura de un libro entero",
-      "isDaily": true
-    },
-    {
-      "title": "Completar un curso online de 4 semanas",
-      "tier": "regular",
-      "description": "Finaliza un curso estructurado en una plataforma educativa",
-      "isDaily": true
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Estudiar 1 hora consecutiva",
       "tier": "regular",
       "description": "Mantén concentración profunda en tus estudios",
-      "isDaily": true
+      "weeklyTarget": 3,
+      "isGoal": false
     },
     {
       "title": "Escribir un ensayo o artículo",
       "tier": "regular",
       "description": "Articula tus ideas en forma escrita estructurada",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Leer un libro completo",
+      "tier": "regular",
+      "description": "Termina la lectura de un libro entero",
+      "weeklyTarget": null,
+      "isGoal": true
+    },
+    {
+      "title": "Completar un curso online de 4 semanas",
+      "tier": "regular",
+      "description": "Finaliza un curso estructurado en una plataforma educativa",
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Aprender programación básica",
       "tier": "regular",
       "description": "Inicia en el mundo de la codificación",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Dominar una habilidad técnica",
       "tier": "regular",
       "description": "Aprende a usar una herramienta o software profesional",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Obtener una certificación profesional",
       "tier": "hard",
       "description": "Completa un programa certificado y obtén credenciales",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Leer 5 libros en un mes",
       "tier": "hard",
       "description": "Desafíate a leer múltiples libros en poco tiempo",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Crear un proyecto educativo complejo",
       "tier": "hard",
       "description": "Desarrolla un proyecto que integre múltiples habilidades",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Dominar un nuevo idioma (nivel básico)",
       "tier": "hard",
       "description": "Alcanza conversación básica en otro idioma",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Convertirse en experto en un campo",
       "tier": "epic",
       "description": "Dedica 10,000 horas al dominio de una disciplina",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Publicar un trabajo académico",
       "tier": "epic",
       "description": "Comparte tu investigación o conocimiento públicamente",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     }
   ]
 }

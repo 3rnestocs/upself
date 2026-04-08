@@ -4,133 +4,155 @@
       "title": "Registrar gastos del día",
       "tier": "easy",
       "description": "Anota todos tus gastos para mantener control",
-      "isDaily": true
-    },
-    {
-      "title": "Buscar una oferta al comprar",
-      "tier": "easy",
-      "description": "Compara precios antes de hacer una compra",
-      "isDaily": true
-    },
-    {
-      "title": "Cancelar una suscripción innecesaria",
-      "tier": "easy",
-      "description": "Elimina gastos recurrentes que no uses",
-      "isDaily": true
-    },
-    {
-      "title": "Ahorrar 100 pesos",
-      "tier": "easy",
-      "description": "Destina una pequeña cantidad a tu ahorro",
-      "isDaily": true
-    },
-    {
-      "title": "Vender algo que no necesitas",
-      "tier": "easy",
-      "description": "Genera ingresos vendiendo artículos antiguos",
-      "isDaily": false
-    },
-    {
-      "title": "Hacer un presupuesto semanal",
-      "tier": "easy",
-      "description": "Planifica tus gastos para la semana",
-      "isDaily": false
-    },
-    {
-      "title": "Usar cupones de descuento",
-      "tier": "easy",
-      "description": "Aprovecha códigos o cupones disponibles",
-      "isDaily": false
+      "weeklyTarget": 5,
+      "isGoal": false
     },
     {
       "title": "Cocinar en casa en lugar de comer fuera",
       "tier": "easy",
       "description": "Ahorra cocinando tu propia comida",
-      "isDaily": false
+      "weeklyTarget": 3,
+      "isGoal": false
     },
     {
       "title": "Revisar tu extracto bancario",
       "tier": "easy",
       "description": "Verifica transacciones y saldo",
-      "isDaily": false
+      "weeklyTarget": 1,
+      "isGoal": false
+    },
+    {
+      "title": "Hacer un presupuesto semanal",
+      "tier": "easy",
+      "description": "Planifica tus gastos para la semana",
+      "weeklyTarget": 1,
+      "isGoal": false
+    },
+    {
+      "title": "Buscar una oferta al comprar",
+      "tier": "easy",
+      "description": "Compara precios antes de hacer una compra",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Ahorrar 100 pesos",
+      "tier": "easy",
+      "description": "Destina una pequeña cantidad a tu ahorro",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Vender algo que no necesitas",
+      "tier": "easy",
+      "description": "Genera ingresos vendiendo artículos antiguos",
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Usar cupones de descuento",
+      "tier": "easy",
+      "description": "Aprovecha códigos o cupones disponibles",
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Negociar un mejor precio",
       "tier": "easy",
       "description": "Intenta obtener descuento en una compra",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
-      "title": "Crear un fondo de emergencia",
-      "tier": "regular",
-      "description": "Ahorra equivalente a 3 meses de gastos",
-      "isDaily": true
+      "title": "Cancelar una suscripción innecesaria",
+      "tier": "easy",
+      "description": "Elimina gastos recurrentes que no uses",
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Completar un freelance o trabajo extra",
       "tier": "regular",
       "description": "Gana dinero adicional en tu tiempo libre",
-      "isDaily": true
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Crear un fondo de emergencia",
+      "tier": "regular",
+      "description": "Ahorra equivalente a 3 meses de gastos",
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Implementar presupuesto mensual",
       "tier": "regular",
       "description": "Crea un plan financiero detallado",
-      "isDaily": true
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Invertir en un fondo o acción",
       "tier": "regular",
       "description": "Comienza tu viaje de inversiones",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Aumentar tus ingresos en 10%",
       "tier": "regular",
       "description": "Negocia un aumento o busca más trabajo",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Auditar todos tus gastos recurrentes",
       "tier": "regular",
       "description": "Revisa y optimiza todas tus suscripciones",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Ahorrar el 30% de tus ingresos",
       "tier": "hard",
       "description": "Destina un tercio a ahorro e inversión",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Generar ingresos pasivos",
       "tier": "hard",
       "description": "Crea una fuente de dinero sin trabajo activo",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Crear un plan de inversión a largo plazo",
       "tier": "hard",
       "description": "Desarrolla estrategia financiera de 10 años",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Duplicar tus ingresos en un año",
       "tier": "hard",
       "description": "Aumenta significativamente tu ganancia anual",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Lograr libertad financiera",
       "tier": "epic",
       "description": "Acumula suficiente riqueza para vivir sin trabajar",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Crear un imperio financiero",
       "tier": "epic",
       "description": "Construye un portafolio diverso y rentable",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     }
   ]
 }

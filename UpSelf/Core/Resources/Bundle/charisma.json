@@ -1,136 +1,158 @@
 {
   "quests": [
     {
-      "title": "Saludar a un amigo",
+      "title": "Enviar un mensaje amable",
       "tier": "easy",
-      "description": "Inicia contacto con alguien que te importa",
-      "isDaily": true
+      "description": "Contacta a alguien con una palabra amable",
+      "weeklyTarget": 3,
+      "isGoal": false
     },
     {
       "title": "Hacer un cumplido genuino",
       "tier": "easy",
       "description": "Expresa aprecio sincero a alguien",
-      "isDaily": true
+      "weeklyTarget": 3,
+      "isGoal": false
+    },
+    {
+      "title": "Saludar a un amigo",
+      "tier": "easy",
+      "description": "Inicia contacto con alguien que te importa",
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Escuchar activamente a alguien",
       "tier": "easy",
       "description": "Dedica tiempo a escuchar sin distracciones",
-      "isDaily": true
-    },
-    {
-      "title": "Enviar un mensaje amable",
-      "tier": "easy",
-      "description": "Contacta a alguien con una palabra amable",
-      "isDaily": true
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Sonreír a un desconocido",
       "tier": "easy",
       "description": "Muestra amabilidad a alguien que no conoces",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Participar en una conversación grupal",
       "tier": "easy",
       "description": "Únete y colabora en una conversación social",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Ayudar a un vecino",
       "tier": "easy",
       "description": "Ofrece tu ayuda de forma desinteresada",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Presentarse a alguien nuevo",
       "tier": "easy",
       "description": "Inicia una conversación con una persona desconocida",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Compartir un chiste o anécdota",
       "tier": "easy",
       "description": "Usa el humor para conectar con otros",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Visitar a un amigo en persona",
       "tier": "easy",
       "description": "Pasa tiempo cara a cara con alguien importante",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Organizar una cena con amigos",
       "tier": "regular",
       "description": "Reúne a tus amigos para una comida social",
-      "isDaily": true
-    },
-    {
-      "title": "Dar un discurso público",
-      "tier": "regular",
-      "description": "Habla públicamente ante una audiencia",
-      "isDaily": true
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Resolver un conflicto pacíficamente",
       "tier": "regular",
       "description": "Negocia y reconcilia una diferencia",
-      "isDaily": true
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Hacer una presentación profesional",
       "tier": "regular",
       "description": "Presenta ideas a colegas o superiores",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
     },
     {
       "title": "Networking en un evento profesional",
       "tier": "regular",
       "description": "Conecta con profesionales en tu campo",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": false
+    },
+    {
+      "title": "Dar un discurso público",
+      "tier": "regular",
+      "description": "Habla públicamente ante una audiencia",
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Ser mentor de alguien",
       "tier": "regular",
       "description": "Guía y apoya el desarrollo de otra persona",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Organizar un evento comunitario",
       "tier": "hard",
       "description": "Planifica y ejecuta un evento para la comunidad",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Dar un seminario o taller",
       "tier": "hard",
       "description": "Enseña y comparte tu conocimiento públicamente",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Influir positivamente en un grupo",
       "tier": "hard",
       "description": "Lidera a un grupo hacia una causa positiva",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Reparar una amistad rota",
       "tier": "hard",
       "description": "Reconcíliate genuinamente con alguien distante",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Convertirse en un líder reconocido",
       "tier": "epic",
       "description": "Alcanza posición de influencia y liderazgo",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     },
     {
       "title": "Crear un movimiento social positivo",
       "tier": "epic",
       "description": "Inspira a otros a seguir una causa importante",
-      "isDaily": false
+      "weeklyTarget": null,
+      "isGoal": true
     }
   ]
 }

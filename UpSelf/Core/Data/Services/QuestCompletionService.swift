@@ -39,6 +39,7 @@ final class QuestCompletionService: QuestCompletionServiceProtocol {
     @MainActor
     func complete(_ quest: Quest, context: ModelContext) throws -> QuestCompletionResult {
         let ref = gameClock.now
+        let calendar = Calendar.current
 
         // 1. Eligibility check — recovery path for hard/epic in lockdown
         let canProceed: Bool = {
@@ -75,6 +76,8 @@ final class QuestCompletionService: QuestCompletionServiceProtocol {
         let previousInLockdown = profile.isInLockdown
         let previousEpisodeStart = profile.lockdownEpisodeStart
         let previousHP = profile.currentHP
+        let previousWeeklyCount = quest.weeklyCompletionCount
+        let previousWeeklyWeekOf = quest.weeklyCompletionWeekOf
 
         // 4. Apply changes
         stat.currentXP += tier.xp
@@ -88,6 +91,18 @@ final class QuestCompletionService: QuestCompletionServiceProtocol {
             return .notEligible
         }
         quest.lastCompleted = ref
+
+        // Update weekly completion counter for committed quests
+        if quest.weeklyTarget != nil {
+            let weekStart = calendar.mondayStart(for: ref)
+            if let existingWeekOf = quest.weeklyCompletionWeekOf,
+               calendar.isDate(existingWeekOf, inSameDayAs: weekStart) {
+                quest.weeklyCompletionCount += 1
+            } else {
+                quest.weeklyCompletionCount = 1
+                quest.weeklyCompletionWeekOf = weekStart
+            }
+        }
 
         var clearedLockdown = false
         if profile.isInLockdown {
@@ -119,6 +134,8 @@ final class QuestCompletionService: QuestCompletionServiceProtocol {
             context.delete(insertedLog)
             stat.currentXP = previousXP
             quest.lastCompleted = previousCompleted
+            quest.weeklyCompletionCount = previousWeeklyCount
+            quest.weeklyCompletionWeekOf = previousWeeklyWeekOf
             profile.lockdownEpicCompletions = previousEpic
             profile.lockdownHardCompletions = previousHard
             profile.isInLockdown = previousInLockdown

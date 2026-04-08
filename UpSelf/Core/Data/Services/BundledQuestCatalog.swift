@@ -17,9 +17,7 @@ enum BundledQuestPack: String, CaseIterable, Sendable {
     case willpower
     case economy
 
-    var resourceName: String {
-        self.rawValue
-    }
+    var resourceName: String { self.rawValue }
 
     var attribute: CharacterAttribute {
         CharacterAttribute(rawValue: self.rawValue)!
@@ -30,7 +28,10 @@ struct BundledQuestDefinition: Codable, Sendable {
     let title: String
     let tier: String
     let description: String?
-    let isDaily: Bool
+    /// How many times per week this quest must be completed (nil = freeform or goal).
+    let weeklyTarget: Int?
+    /// `true` = once-ever milestone.
+    let isGoal: Bool
 }
 
 struct BundledQuestFile: Codable, Sendable {
@@ -42,9 +43,10 @@ struct BundledQuestBlueprint: Sendable {
     let attribute: CharacterAttribute
     let rewardTier: QuestRewardTier
 
-    var title: String { definition.title }
-    var rewardXP: Int { rewardTier.xp }
-    var isDaily: Bool { definition.isDaily }
+    var title: String        { definition.title }
+    var rewardXP: Int        { rewardTier.xp }
+    var weeklyTarget: Int?   { definition.weeklyTarget }
+    var isGoal: Bool         { definition.isGoal }
 }
 
 enum BundledQuestCatalogError: Error, Sendable {

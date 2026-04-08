@@ -2,8 +2,13 @@
 //  MissedDailyPenaltyService.swift
 //  UpSelf
 //
-//  On each app activation, evaluates **past** calendar days (through yesterday). If the **daily set**
-//  was not fully completed on a day, applies one HP loss for that day (not per quest).
+//  On each app activation, evaluates **past** calendar days (through yesterday).
+//
+//  Daily path   — quests with weeklyTarget == 7 must be completed every day.
+//                 One HP loss per day where any 7/7 quest was missed.
+//  Weekly path  — quests with weeklyTarget < 7 are checked every Monday for the
+//                 previous Mon–Sun week. One HP loss per quest that fell short
+//                 of its target.
 //
 
 import Foundation
@@ -11,11 +16,12 @@ import SwiftData
 
 enum MissedDailyPenaltyService {
 
-    /// HP removed when **any** daily remains incomplete for a past calendar day (once per day, not per quest).
+    /// HP removed when any 7/7 quest remains incomplete for a past calendar day.
     static let hpPerIncompleteDailyDay = 20
 
-    /// Run when the scene becomes active. Updates `lastAppOpen` and the missed-daily watermark.
-    /// - Returns: Total HP subtracted this run (for global UI); `0` if none.
+    /// HP removed per weekly-committed quest that missed its target for a past week.
+    static let hpPerMissedWeeklyQuest = 20
+
     @MainActor
     @discardableResult
     static func evaluateIfNeeded(context: ModelContext, clock: GameClock) throws -> Int {
@@ -28,10 +34,6 @@ enum MissedDailyPenaltyService {
         descriptor.fetchLimit = 1
         guard let profile = try context.fetch(descriptor).first else { return 0 }
 
-        // First install: do not back-penalize arbitrary history. Seed the watermark to **two days ago**
-        // so the next line’s `day = lastEval + 1` equals **yesterday** and the loop can run.
-        // (The old path set the watermark to *yesterday* and returned: then `day` became *today*, which is
-        // never `<= yesterday`, so **yesterday was never evaluated** — penalties never applied.)
         if profile.lastMissedDailyEvaluationDate == nil {
             guard let twoDaysAgoStart = calendar.date(byAdding: .day, value: -2, to: todayStart) else { return 0 }
             profile.lastMissedDailyEvaluationDate = twoDaysAgoStart
@@ -42,18 +44,18 @@ enum MissedDailyPenaltyService {
         }
 
         var totalHPLostThisRun = 0
-        // `lastMissedDailyEvaluationDate` is guaranteed non-nil here: the nil branch above returns early.
         let lastEval = calendar.startOfDay(for: profile.lastMissedDailyEvaluationDate!)
         guard let initialDay = calendar.date(byAdding: .day, value: 1, to: lastEval) else { return 0 }
         var day = initialDay
 
         while day <= yesterdayStart {
-            let dailies = profile.quests.filter(\.isDaily)
-            if !dailies.isEmpty {
-                let allDailiesCompletedThatDay = dailies.allSatisfy {
+            // ── Daily path: 7/7 committed quests ──────────────────────────────────
+            let dailyCommitted = profile.quests.filter { $0.weeklyTarget == 7 }
+            if !dailyCommitted.isEmpty {
+                let allCompleted = dailyCommitted.allSatisfy {
                     Self.isQuestCompletedOnCalendarDay($0, dayStart: day, calendar: calendar)
                 }
-                if !allDailiesCompletedThatDay {
+                if !allCompleted {
                     let loss = min(hpPerIncompleteDailyDay, profile.currentHP)
                     if loss > 0 {
                         profile.currentHP -= loss
@@ -64,6 +66,43 @@ enum MissedDailyPenaltyService {
                     }
                 }
             }
+
+            // ── Weekly path: <7/7 committed quests, evaluated every Monday ────────
+            if calendar.isMonday(day) {
+                guard let prevWeekMonday = calendar.date(byAdding: .weekOfYear, value: -1, to: day) else {
+                    guard let nextDay = calendar.date(byAdding: .day, value: 1, to: day) else { break }
+                    day = nextDay
+                    continue
+                }
+
+                let weeklyCommitted = profile.quests.filter {
+                    guard let target = $0.weeklyTarget else { return false }
+                    return target < 7
+                }
+
+                for quest in weeklyCommitted {
+                    let completionsLastWeek: Int
+                    if let weekOf = quest.weeklyCompletionWeekOf,
+                       calendar.isDate(weekOf, inSameDayAs: prevWeekMonday) {
+                        completionsLastWeek = quest.weeklyCompletionCount
+                    } else {
+                        completionsLastWeek = 0
+                    }
+
+                    let target = quest.weeklyTarget!
+                    if completionsLastWeek < target {
+                        let loss = min(hpPerMissedWeeklyQuest, profile.currentHP)
+                        if loss > 0 {
+                            profile.currentHP -= loss
+                            totalHPLostThisRun += loss
+                            let weekLabel = prevWeekMonday.formatted(date: .abbreviated, time: .omitted)
+                            let message = L10n.ActivityLogCopy.missedDailySetMessage(dayLabel: weekLabel, hp: loss)
+                            DependencyContainer[\.activityLogService].insertHPLoss(context: context, profile: profile, message: message)
+                        }
+                    }
+                }
+            }
+
             guard let nextDay = calendar.date(byAdding: .day, value: 1, to: day) else { break }
             day = nextDay
         }
@@ -75,7 +114,7 @@ enum MissedDailyPenaltyService {
         return totalHPLostThisRun
     }
 
-    /// Whether `quest.lastCompleted` falls on the same calendar day as `dayStart` (missed-daily evaluation).
+    /// Whether `quest.lastCompleted` falls on the same calendar day as `dayStart`.
     static func isQuestCompletedOnCalendarDay(_ quest: Quest, dayStart: Date, calendar: Calendar) -> Bool {
         guard let completed = quest.lastCompleted else { return false }
         return calendar.isDate(completed, inSameDayAs: dayStart)
@@ -84,8 +123,6 @@ enum MissedDailyPenaltyService {
 
 #if DEBUG
 extension MissedDailyPenaltyService {
-    /// Resets the watermark to **two days before “game today”** so the **next** `evaluateIfNeeded` processes
-    /// **yesterday** for penalties (matches first-install seeding; simulation helper).
     static func debugResetEvaluationWatermark(context: ModelContext, clock: GameClock) throws {
         let calendar = Calendar.current
         let todayStart = calendar.startOfDay(for: clock.now)
