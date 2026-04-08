@@ -89,6 +89,7 @@ final class AppNavigator {
     // MARK: - Sheet
 
     var isCreateQuestPresented: Bool = false
+    var showDifficultyCheck: Bool = false
 
     // MARK: - Alert queue
 

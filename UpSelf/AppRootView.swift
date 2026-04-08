@@ -10,6 +10,8 @@ import SwiftData
 import SwiftUI
 
 struct AppRootView: View {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+
     @Environment(AppNavigator.self) private var navigator
     @Environment(\.gameClock) private var gameClock
 
@@ -27,6 +29,15 @@ struct AppRootView: View {
     }
 
     var body: some View {
+        if !hasCompletedOnboarding {
+            OnboardingContainerView(modelContext: modelContainer.mainContext)
+        } else {
+            mainApp
+        }
+    }
+
+    @ViewBuilder
+    private var mainApp: some View {
         @Bindable var nav = navigator
 
         TabView(selection: $nav.selectedTab) {
@@ -62,6 +73,12 @@ struct AppRootView: View {
         .onAppear {
             wireDashboardViewModel()
             wireSettingsViewModel()
+        }
+        .sheet(isPresented: Bindable(navigator).showDifficultyCheck) {
+            DifficultyCheckView(
+                modelContext: modelContainer.mainContext,
+                onDismiss: { navigator.showDifficultyCheck = false }
+            )
         }
     }
 
@@ -178,6 +195,9 @@ struct AppRootView: View {
         }
         vm.onPresentQuestLogInstructions = { [weak navigator] in
             navigator?.enqueueAlert(.questLogInstructions)
+        }
+        vm.onShouldShowDifficultyCheck = { [weak navigator] in
+            navigator?.showDifficultyCheck = true
         }
         return vm
     }
