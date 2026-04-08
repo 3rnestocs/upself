@@ -176,12 +176,44 @@ enum L10n {
         static let title = LocalizedStringResource("quest_log.title")
         static let filterDaily = LocalizedStringResource("quest_log.filter.daily")
         static let filterOneOff = LocalizedStringResource("quest_log.filter.one_off")
+        static let filterGoal = LocalizedStringResource("quest_log.filter.goal")
         static let filterAccessibility = LocalizedStringResource("quest_log.filter.accessibility")
         static let empty = LocalizedStringResource("quest_log.empty")
         static let dashboardOneOffTeaser = LocalizedStringResource("quest_log.dashboard.one_off_teaser")
         static let instructionsTitle = LocalizedStringResource("quest_log.instructions.title")
         static let instructionsBody = LocalizedStringResource("quest_log.instructions.body")
         static let instructionsButtonAccessibility = LocalizedStringResource("quest_log.instructions.button_accessibility")
+    }
+
+    enum Onboarding {
+        static let welcomeTitle       = LocalizedStringResource("onboarding.welcome.title")
+        static let welcomeBody        = LocalizedStringResource("onboarding.welcome.body")
+        static let conceptTitle       = LocalizedStringResource("onboarding.concept.title")
+        static let conceptBody        = LocalizedStringResource("onboarding.concept.body")
+        static let statsTitle         = LocalizedStringResource("onboarding.stats.title")
+        static let statsBody          = LocalizedStringResource("onboarding.stats.body")
+        static let lockdownTitle      = LocalizedStringResource("onboarding.lockdown.title")
+        static let lockdownBody       = LocalizedStringResource("onboarding.lockdown.body")
+        static let personalizationTitle = LocalizedStringResource("onboarding.personalization.title")
+        static let personalizationBody  = LocalizedStringResource("onboarding.personalization.body")
+        static let importTitle        = LocalizedStringResource("onboarding.import.title")
+        static let importReady        = LocalizedStringResource("onboarding.import.ready")
+        static let previewHeader        = LocalizedStringResource("onboarding.preview.header")
+        static let previewHpBar         = LocalizedStringResource("onboarding.preview.hp_bar")
+        static let previewQuestVitality = LocalizedStringResource("onboarding.preview.quest.vitality")
+        static let previewQuestMastery  = LocalizedStringResource("onboarding.preview.quest.mastery")
+        static let previewQuestWillpower = LocalizedStringResource("onboarding.preview.quest.willpower")
+        static let previewQuestEconomy  = LocalizedStringResource("onboarding.preview.quest.economy")
+        static let actionNext         = LocalizedStringResource("onboarding.action.next")
+        static let actionSkip         = LocalizedStringResource("onboarding.action.skip")
+        static let actionUnderstood   = LocalizedStringResource("onboarding.action.understood")
+        static let actionRetry        = LocalizedStringResource("onboarding.action.retry")
+        static let actionPlay         = LocalizedStringResource("onboarding.action.play")
+        static let difficultyTitle    = LocalizedStringResource("onboarding.difficulty.title")
+        static let difficultyBody     = LocalizedStringResource("onboarding.difficulty.body")
+        static let difficultyTooEasy  = LocalizedStringResource("onboarding.difficulty.too_easy")
+        static let difficultyJustRight = LocalizedStringResource("onboarding.difficulty.just_right")
+        static let difficultyTooHard  = LocalizedStringResource("onboarding.difficulty.too_hard")
     }
 
     enum Settings {
@@ -336,10 +368,20 @@ enum L10n {
         static let fieldTitle = LocalizedStringResource("create_quest.field_title")
         static let fieldTier = LocalizedStringResource("create_quest.field_tier")
         static let fieldAttribute = LocalizedStringResource("create_quest.field_attribute")
-        static let fieldDaily = LocalizedStringResource("create_quest.field_daily")
+        static let fieldSchedule = LocalizedStringResource("create_quest.field_schedule")
+        static let fieldWeeklyTarget = LocalizedStringResource("create_quest.field_weekly_target")
+        static let weeklyTargetSuffix = LocalizedStringResource("create_quest.weekly_target_suffix")
         static let validationTitleEmpty = LocalizedStringResource("create_quest.validation.title_empty")
         static let validationNoProfile = LocalizedStringResource("create_quest.validation.no_profile")
         static let validationSaveFailed = LocalizedStringResource("create_quest.validation.save_failed")
+
+        static func scheduleName(_ schedule: CreateQuestSchedule) -> LocalizedStringResource {
+            switch schedule {
+            case .committed: LocalizedStringResource("create_quest.schedule.committed")
+            case .freeform:  LocalizedStringResource("create_quest.schedule.freeform")
+            case .goal:      LocalizedStringResource("create_quest.schedule.goal")
+            }
+        }
 
         static func tierName(_ tier: QuestRewardTier) -> LocalizedStringResource {
             switch tier {
