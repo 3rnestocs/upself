@@ -16,25 +16,25 @@ struct MissedDailyPenaltyCalendarDayTests {
     }
 
     @Test func isQuestCompletedOnCalendarDay_trueWhenLastCompletedSameDay() throws {
-        var cal = utc
+        let cal = utc
         let dayStart = try #require(cal.date(from: DateComponents(year: 2026, month: 3, day: 10)))
         let noon = try #require(cal.date(byAdding: .hour, value: 12, to: dayStart))
 
-        let quest = Quest(title: "Q", statKind: .vitality, isDaily: true)
+        let quest = Quest(title: "Q", statKind: .vitality, weeklyTarget: 7, isGoal: false)
         quest.lastCompleted = noon
 
         #expect(MissedDailyPenaltyService.isQuestCompletedOnCalendarDay(quest, dayStart: dayStart, calendar: cal))
     }
 
     @Test func isQuestCompletedOnCalendarDay_falseWhenNilOrDifferentDay() throws {
-        var cal = utc
+        let cal = utc
         let dayStart = try #require(cal.date(from: DateComponents(year: 2026, month: 3, day: 10)))
         let otherDay = try #require(cal.date(byAdding: .day, value: -1, to: dayStart))
 
-        let empty = Quest(title: "Q", statKind: .vitality, isDaily: true)
+        let empty = Quest(title: "Q", statKind: .vitality, weeklyTarget: 7, isGoal: false)
         #expect(!MissedDailyPenaltyService.isQuestCompletedOnCalendarDay(empty, dayStart: dayStart, calendar: cal))
 
-        let quest = Quest(title: "Q", statKind: .vitality, isDaily: true)
+        let quest = Quest(title: "Q", statKind: .vitality, weeklyTarget: 7, isGoal: false)
         quest.lastCompleted = otherDay
         #expect(!MissedDailyPenaltyService.isQuestCompletedOnCalendarDay(quest, dayStart: dayStart, calendar: cal))
     }
